@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆方法 - 36智能记忆</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .methods-container {
+            padding: 24px;
+            background: linear-gradient(135deg, #2DE5F6 0%, #000618 100%);
+            min-height: calc(100vh - 120px);
+            position: relative;
+        }
+
+        .methods-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.05"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.05"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 16px;
+            background: transparent;
+        }
+
+        .search-box .search-icon {
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .category-tab {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .category-tab.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000618;
+        }
+
+        .methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .method-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            min-height: 130px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .method-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(45, 229, 246, 0.08) 0%, rgba(247, 128, 128, 0.08) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .method-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .method-card:hover::before {
+            opacity: 1;
+        }
+
+        .method-card.selected {
+            background: linear-gradient(135deg, #2DE5F6, #000618);
+            color: white;
+            box-shadow: 0 8px 30px rgba(0, 6, 24, 0.4);
+        }
+
+        .method-card.selected::before {
+            opacity: 0;
+        }
+
+        .method-number {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(57, 112, 255, 0.9);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .method-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .method-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .method-desc {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .method-card.selected .method-desc {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .selected-method {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .selected-method.show {
+            display: block;
+        }
+
+        .method-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .method-header .method-icon {
+            font-size: 36px;
+            margin-right: 15px;
+        }
+
+        .method-title {
+            flex: 1;
+        }
+
+        .method-title h3 {
+            color: #000618;
+            margin: 0 0 5px 0;
+            font-size: 20px;
+        }
+
+        .method-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .meta-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .method-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .method-details {
+            margin-bottom: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 15px;
+        }
+
+        .detail-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .detail-content {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .example-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .example-list li {
+            background: #fff3cd;
+            margin: 5px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #ffc107;
+            font-size: 13px;
+        }
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            counter-reset: step-counter;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            background: #e8f5e8;
+            margin: 5px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            background: #28a745;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .difficulty-badge {
+            background: #ff6b6b;
+            color: white;
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 8px;
+        }
+
+        .difficulty-easy { background: #4CAF50; }
+        .difficulty-medium { background: #FF9800; }
+        .difficulty-hard { background: #F44336; }
+        .prompt-badge {
+            background: #3b82f6;
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .card-badges {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 3;
+        }
+        .card-badges .difficulty-badge { position: static; }
+        .card-badges .prompt-badge { position: static; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            width: 90%;
+            max-width: 640px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #0F172A;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-body {
+            padding: 14px 16px;
+            display: grid;
+            gap: 10px;
+        }
+        .label-row { display: flex; gap: 8px; align-items: center; }
+        .modal-tag { background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        .modal-section-title { font-size: 13px; color: #374151; font-weight: 600; }
+        .modal-textarea { width: 100%; min-height: 120px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; font-size: 13px; resize: vertical; }
+        .modal-textarea[readonly] { background: #f9fafb; color: #4b5563; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid #e5e7eb; }
+        .modal-btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; }
+        .modal-btn.secondary { background: #f3f4f6; color: #111827; }
+        .modal-btn.danger { background: #fee2e2; color: #991b1b; }
+        .modal-btn.primary { background: #3b82f6; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="methods-container">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="搜索记忆方法..." id="searchInput">
+        </div>
+
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="all">全部</button>
+            <button class="category-tab" data-category="visual">视觉记忆</button>
+            <button class="category-tab" data-category="logical">逻辑记忆</button>
+            <button class="category-tab" data-category="association">联想记忆</button>
+            <button class="category-tab" data-category="repetition">重复记忆</button>
+        </div>
+
+        <div class="selected-method" id="selectedMethod">
+            <!-- 动态内容将在这里显示 -->
+        </div>
+
+        <div class="methods-grid" id="methodsGrid">
+            <!-- 方法卡片将通过JavaScript动态生成 -->
+        </div>
+    </div>
+    <div id="promptModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                编辑提示词
+            </div>
+            <div class="modal-body">
+                <div class="label-row">
+                    <span class="modal-tag" id="modalMethodName"></span>
+                    <span class="modal-tag" id="modalDifficulty"></span>
+                </div>
+                <div class="modal-section-title">原始提示词</div>
+                <textarea class="modal-textarea" id="originalPromptText" readonly></textarea>
+                <div class="modal-section-title">自定义提示词（支持{{content}}）</div>
+                <textarea class="modal-textarea" id="customPromptInput" placeholder="输入自定义提示词，支持{{content}}"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="copyOriginalToCustom()">复制原始到编辑</button>
+                <button class="modal-btn danger" onclick="restoreDefaultPrompt()">恢复默认</button>
+                <button class="modal-btn secondary" onclick="closePromptModal()">取消</button>
+                <button class="modal-btn primary" onclick="savePromptFromModal()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const memoryMethods = (parent && parent.getMemoryMethods) ? parent.getMemoryMethods() : [
+            { id: 1, name: '联想记忆法', icon: '🔗', desc: '通过建立事物间的联系来记忆', category: 'association', difficulty: 'easy' },
+            { id: 2, name: '图像记忆法', icon: '🖼️', desc: '将信息转化为生动的图像', category: 'visual', difficulty: 'medium' },
+            { id: 3, name: '故事记忆法', icon: '📚', desc: '将要记忆的内容编成故事', category: 'association', difficulty: 'easy' },
+            { id: 4, name: '位置记忆法', icon: '📍', desc: '利用熟悉的地点来记忆信息', category: 'visual', difficulty: 'medium' },
+            { id: 5, name: '韵律记忆法', icon: '🎵', desc: '通过节奏和韵律来记忆', category: 'repetition', difficulty: 'easy' },
+            { id: 6, name: '分类记忆法', icon: '📂', desc: '将信息按类别整理记忆', category: 'logical', difficulty: 'easy' },
+            { id: 7, name: '重复记忆法', icon: '🔄', desc: '通过多次重复来加强记忆', category: 'repetition', difficulty: 'easy' },
+            { id: 8, name: '关键词记忆法', icon: '🔑', desc: '提取关键词进行记忆', category: 'logical', difficulty: 'easy' },
+            { id: 9, name: '数字记忆法', icon: '🔢', desc: '将数字转化为易记的形式', category: 'logical', difficulty: 'medium' },
+            { id: 10, name: '首字母记忆法', icon: '🅰️', desc: '利用首字母组成词语记忆', category: 'logical', difficulty: 'easy' },
+            { id: 11, name: '思维导图法', icon: '🗺️', desc: '用图形化方式整理信息', category: 'visual', difficulty: 'medium' },
+            { id: 12, name: '对比记忆法', icon: '⚖️', desc: '通过对比来突出差异', category: 'logical', difficulty: 'easy' },
+            { id: 13, name: '时间轴记忆法', icon: '⏰', desc: '按时间顺序排列信息', category: 'logical', difficulty: 'easy' },
+            { id: 14, name: '口诀记忆法', icon: '📝', desc: '编制朗朗上口的口诀', category: 'repetition', difficulty: 'easy' },
+            { id: 15, name: '视觉记忆法', icon: '👁️', desc: '利用视觉印象来记忆', category: 'visual', difficulty: 'medium' },
+            { id: 16, name: '听觉记忆法', icon: '👂', desc: '通过声音和音调记忆', category: 'repetition', difficulty: 'easy' },
+            { id: 17, name: '动作记忆法', icon: '🤸', desc: '结合身体动作来记忆', category: 'visual', difficulty: 'medium' },
+            { id: 18, name: '情感记忆法', icon: '❤️', desc: '利用情感体验加深记忆', category: 'association', difficulty: 'medium' },
+            { id: 19, name: '逻辑记忆法', icon: '🧠', desc: '通过逻辑关系来记忆', category: 'logical', difficulty: 'medium' },
+            { id: 20, name: '谐音记忆法', icon: '🎭', desc: '利用谐音来记忆信息', category: 'association', difficulty: 'easy' },
+            { id: 21, name: '符号记忆法', icon: '🔣', desc: '用符号代替复杂信息', category: 'visual', difficulty: 'medium' },
+            { id: 22, name: '层次记忆法', icon: '🏗️', desc: '按层次结构组织信息', category: 'logical', difficulty: 'medium' },
+            { id: 23, name: '循环记忆法', icon: '🔁', desc: '定期复习巩固记忆', category: 'repetition', difficulty: 'easy' },
+            { id: 24, name: '压缩记忆法', icon: '📦', desc: '将信息压缩成简短形式', category: 'logical', difficulty: 'medium' },
+            { id: 25, name: '扩展记忆法', icon: '📈', desc: '从核心信息向外扩展', category: 'association', difficulty: 'medium' },
+            { id: 26, name: '模拟记忆法', icon: '🎯', desc: '模拟实际应用场景', category: 'visual', difficulty: 'hard' },
+            { id: 27, name: '游戏记忆法', icon: '🎮', desc: '通过游戏化方式记忆', category: 'visual', difficulty: 'easy' },
+            { id: 28, name: '竞争记忆法', icon: '🏆', desc: '通过竞争激发记忆动力', category: 'association', difficulty: 'medium' },
+            { id: 29, name: '奖励记忆法', icon: '🎁', desc: '设置奖励机制促进记忆', category: 'association', difficulty: 'easy' },
+            { id: 30, name: '社交记忆法', icon: '👥', desc: '通过社交互动来记忆', category: 'association', difficulty: 'medium' },
+            { id: 31, name: '环境记忆法', icon: '🌍', desc: '利用环境因素辅助记忆', category: 'visual', difficulty: 'medium' },
+            { id: 32, name: '工具记忆法', icon: '🛠️', desc: '借助工具来辅助记忆', category: 'logical', difficulty: 'easy' },
+            { id: 33, name: '习惯记忆法', icon: '⚡', desc: '将记忆融入日常习惯', category: 'repetition', difficulty: 'medium' },
+            { id: 34, name: '创新记忆法', icon: '💡', desc: '创造性地记忆信息', category: 'association', difficulty: 'hard' },
+            { id: 35, name: '综合记忆法', icon: '🔄', desc: '综合运用多种记忆方法', category: 'logical', difficulty: 'hard' },
+            { id: 36, name: '理解记忆法', icon: '🧠', desc: '通过深入理解来记忆', category: 'logical', difficulty: 'medium' }
+        ];
+
+        let selectedMethodId = null;
+        let currentCategory = 'all';
+
+        function renderMethods(methods = memoryMethods) {
+            const grid = document.getElementById('methodsGrid');
+            grid.innerHTML = '';
+
+            methods.forEach(method => {
+                const card = document.createElement('div');
+                card.className = `method-card ${selectedMethodId === method.id ? 'selected' : ''}`;
+                card.onclick = () => selectMethod(method);
+                
+                card.innerHTML = `
+                    <div class="method-number">${method.id}</div>
+                    <div class="card-badges">
+                        <div class="prompt-badge" data-id="${method.id}">${getPromptLabel(method.id)}</div>
+                        <div class="difficulty-badge difficulty-${method.difficulty}">
+                            ${method.difficulty === 'easy' ? '简单' : method.difficulty === 'medium' ? '中等' : '困难'}
+                        </div>
+                    </div>
+                    <span class="method-icon">${method.icon}</span>
+                    <div class="method-name">${method.name}</div>
+                    <div class="method-desc">${method.desc}</div>
+                `;
+                
+                grid.appendChild(card);
+
+                const badge = card.querySelector('.prompt-badge');
+                if (badge) {
+                    badge.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openPromptModal(method.id);
+                    });
+                }
+            });
+        }
+
+        function selectMethod(method) {
+            selectedMethodId = method.id;
+            
+            // 更新选中状态
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // 显示选中的方法详情
+            const selectedDiv = document.getElementById('selectedMethod');
+            
+            const examplesList = method.examples ? method.examples.map(example => `<li>${example}</li>`).join('') : '';
+            const stepsList = method.steps ? method.steps.map(step => `<li>${step}</li>`).join(''): '';
+            
+            selectedDiv.innerHTML = `
+                <div class="method-header">
+                    <div class="method-icon">${method.icon}</div>
+                    <div class="method-title">
+                        <h3>${method.name}</h3>
+                        <div class="method-meta">
+                            <span class="meta-tag">${getCategoryName(method.category)}</span>
+                            <span class="meta-tag prompt-meta-tag" data-id="${method.id}">${getPromptLabel(method.id)}</span>
+                            <span class="meta-tag">${getDifficultyName(method.difficulty)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="method-description">
+                    ${method.fullDesc || method.desc}
+                </div>
+                
+                <div class="method-details">
+                    ${method.examples ? `
+                    <div class="detail-section">
+                        <div class="detail-title">
+                            💡 使用示例
+                        </div>
+                        <div class="detail-content">
+                            <ul class="example-list">
+                                ${examplesList}
+                            </ul>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${method.steps ? `
+                    <div class="detail-section">
+                        <div class="detail-title">
+                            📋 学习步骤
+                        </div>
+                        <div class="detail-content">
+                            <ol class="steps-list">
+                                ${stepsList}
+                            </ol>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${method.tips ? `
+                    <div class="detail-section">
+                        <div class="detail-title">
+                            💭 使用技巧
+                        </div>
+                        <div class="detail-content">
+                            ${method.tips}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="clearSelection()">重新选择</button>
+                    <button class="btn btn-primary" onclick="useMethod()">使用此方法</button>
+                </div>
+            `;
+            
+            selectedDiv.classList.add('show');
+            const metaPrompt = selectedDiv.querySelector('.prompt-meta-tag');
+            if (metaPrompt) {
+                metaPrompt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPromptModal(method.id);
+                });
+            }
+            
+            // 滚动到选中区域
+            selectedDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function clearSelection() {
+            selectedMethodId = null;
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('selectedMethod').classList.remove('show');
+        }
+
+        function useMethod() {
+            if (selectedMethodId) {
+                const method = memoryMethods.find(m => m.id === selectedMethodId);
+                // 存储选中的方法到localStorage
+                localStorage.setItem('selectedMethod', JSON.stringify(method));
+                // 通知父窗口切换到输入页面
+                parent.postMessage({ action: 'navigate', page: 'input' }, '*');
+            }
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // 更新标签状态
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 过滤方法
+            const filteredMethods = category === 'all' 
+                ? memoryMethods 
+                : memoryMethods.filter(method => method.category === category);
+            
+            renderMethods(filteredMethods);
+            clearSelection();
+        }
+
+        function searchMethods() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filteredMethods = memoryMethods.filter(method => 
+                method.name.toLowerCase().includes(query) || 
+                method.desc.toLowerCase().includes(query)
+            );
+            
+            if (currentCategory !== 'all') {
+                const categoryFiltered = filteredMethods.filter(method => method.category === currentCategory);
+                renderMethods(categoryFiltered);
+            } else {
+                renderMethods(filteredMethods);
+            }
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'visual': '视觉记忆',
+                'logical': '逻辑记忆',
+                'association': '联想记忆',
+                'repetition': '重复记忆'
+            };
+            return names[category] || '综合记忆';
+        }
+
+        function getDifficultyName(difficulty) {
+            const names = {
+                'easy': '简单',
+                'medium': '中等',
+                'hard': '困难'
+            };
+            return names[difficulty] || '中等';
+        }
+
+        let currentEditingMethodId = null;
+
+        function getOriginalPromptTemplate(methodId) {
+            const contentPlaceholder = '{{content}}';
+            const method = memoryMethods.find(m => m.id === methodId);
+            if (!method) {
+                return `请使用记忆方法帮助记忆以下内容:"${contentPlaceholder}"。
+
+请提供详细的记忆方案，包括：
+1. 内容分析
+2. 方法应用
+3. 实施步骤
+4. 技巧要点
+5. 效果评估`;
+            }
+            const desc = method.fullDesc || method.desc || '';
+            const steps = Array.isArray(method.steps) ? method.steps : [];
+            const tips = method.tips || '';
+            const stepsText = steps.length ? ('\n\n实施步骤：\n' + steps.map((s, i) => `${i + 1}. ${s}`).join('\n')) : '';
+            const tipsText = tips ? (`\n\n使用要点：${tips}`) : '';
+            return `请使用${method.name}帮助记忆以下内容:"${contentPlaceholder}"。
+
+${desc}${stepsText}
+
+请按照以下格式提供详细的记忆方案：
+
+1. 内容分析：分析要记忆内容的特点和要求
+2. 方法应用：具体说明如何应用${method.name}
+3. 实施步骤：提供详细的实施步骤和操作方法
+4. 技巧要点：分享使用该方法的关键技巧
+5. 效果评估：说明如何评估和改进记忆效果${tipsText}
+
+请确保方法应用得当，步骤清晰可操作。`;
+        }
+
+        function openPromptModal(methodId) {
+            currentEditingMethodId = methodId;
+            const method = memoryMethods.find(m => m.id === methodId);
+            const modal = document.getElementById('promptModal');
+            document.getElementById('modalMethodName').textContent = method ? method.name : '';
+            document.getElementById('modalDifficulty').textContent = method ? getDifficultyName(method.difficulty) : '';
+            document.getElementById('originalPromptText').value = getOriginalPromptTemplate(methodId);
+            document.getElementById('customPromptInput').value = getCustomPrompt(methodId) || '';
+            modal.style.display = 'flex';
+        }
+
+        function closePromptModal() {
+            const modal = document.getElementById('promptModal');
+            modal.style.display = 'none';
+        }
+
+        function copyOriginalToCustom() {
+            const orig = document.getElementById('originalPromptText').value;
+            document.getElementById('customPromptInput').value = orig;
+        }
+
+        function restoreDefaultPrompt() {
+            if (currentEditingMethodId == null) return;
+            saveCustomPrompt(currentEditingMethodId, '');
+            document.querySelectorAll(`.prompt-badge[data-id="${currentEditingMethodId}"]`).forEach(el => el.textContent = getPromptLabel(currentEditingMethodId));
+            document.querySelectorAll(`.prompt-meta-tag[data-id="${currentEditingMethodId}"]`).forEach(el => el.textContent = getPromptLabel(currentEditingMethodId));
+            document.getElementById('customPromptInput').value = '';
+        }
+
+        function savePromptFromModal() {
+            if (currentEditingMethodId == null) return;
+            const val = document.getElementById('customPromptInput').value || '';
+            saveCustomPrompt(currentEditingMethodId, val);
+            document.querySelectorAll(`.prompt-badge[data-id="${currentEditingMethodId}"]`).forEach(el => el.textContent = getPromptLabel(currentEditingMethodId));
+            document.querySelectorAll(`.prompt-meta-tag[data-id="${currentEditingMethodId}"]`).forEach(el => el.textContent = getPromptLabel(currentEditingMethodId));
+            closePromptModal();
+        }
+
+        function getCustomPrompt(methodId) {
+            try {
+                const map = JSON.parse(localStorage.getItem('customPrompts') || '{}');
+                return map[String(methodId)] || '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function saveCustomPrompt(methodId, text) {
+            let map = {};
+            try {
+                map = JSON.parse(localStorage.getItem('customPrompts') || '{}');
+            } catch (e) {}
+            map[String(methodId)] = text || '';
+            localStorage.setItem('customPrompts', JSON.stringify(map));
+        }
+
+        function getPromptLabel(methodId) {
+            const t = getCustomPrompt(methodId);
+            return t && t.trim() ? '已设提示词' : '提示词';
+        }
+
+        // 事件监听
+        document.getElementById('searchInput').addEventListener('input', searchMethods);
+        
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => filterByCategory(tab.dataset.category));
+        });
+
+        // 初始化
+        renderMethods();
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'loadSelectedMethod') {
+                const savedMethod = localStorage.getItem('selectedMethod');
+                if (savedMethod) {
+                    const method = JSON.parse(savedMethod);
+                    selectMethod(method);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI处理中 - 36智能记忆</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <script src="../js/markdown.js"></script>
+    <style>
+        .processing-container {
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .processing-header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .processing-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .processing-subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .method-info {
+            background: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .status-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .status-text {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-content {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-text {
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        /* Markdown样式支持 */
+        .result-text h1, .result-text h2, .result-text h3 {
+            color: #007bff;
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+        }
+
+        .result-text h1 {
+            font-size: 18px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        .result-text h2 {
+            font-size: 17px;
+        }
+
+        .result-text h3 {
+            font-size: 16px;
+        }
+
+        .result-text ul, .result-text ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .result-text li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .result-text p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .result-text strong {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-text em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .result-text code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #d73a49;
+        }
+
+        .result-text pre {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .result-text pre code {
+            background: none;
+            padding: 0;
+            color: #24292e;
+        }
+
+        .result-text .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .result-text a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .result-text a:hover {
+            text-decoration: underline;
+        }
+
+        .result-text hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, #007bff, #6610f2);
+            margin: 20px 0;
+            border-radius: 1px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+            border: 1px solid #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-stop:hover {
+            background: #c82333;
+            border-color: #bd2130;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-stop:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        .stop-button-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .stop-icon {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .processing-indicator {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="processing-container">
+        <div class="processing-header">
+            <div class="processing-title">🤖 AI记忆优化</div>
+            <div class="processing-subtitle">正在为您生成专属记忆方案...</div>
+            <div class="method-info" id="methodInfo">
+                🧠 记忆方法
+            </div>
+        </div>
+
+        <div class="status-section">
+            <div class="status-text" id="statusText">正在连接AI服务...</div>
+            <div class="processing-indicator" id="processingIndicator">
+                处理中，请稍候...
+            </div>
+            <div class="stop-button-container" id="stopButtonContainer" style="display: none;">
+                <button class="btn btn-stop" id="stopButton" onclick="stopGeneration()">
+                    <span class="stop-icon">⏹</span>
+                    停止生成
+                </button>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <strong>处理失败：</strong><span id="errorText"></span>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                <span class="result-icon">🤖</span>
+                <span class="result-title">AI记忆优化结果</span>
+            </div>
+            
+            <div class="result-content">
+                <div class="result-text" id="resultText"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-outline" onclick="regenerateResult()">重新生成</button>
+                <button class="btn btn-outline" onclick="saveResult()">保存结果</button>
+                <button class="btn btn-outline" onclick="shareResult()">分享结果</button>
+                <button class="btn btn-primary" onclick="viewDetailedResult()">查看详细结果</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+        let resultText = '';
+        let processingStartTime = null;
+
+        // 初始化
+        function init() {
+            const method = JSON.parse(localStorage.getItem('selectedMethod') || '{}');
+            const content = localStorage.getItem('memoryContent') || '';
+            
+            if (method.name) {
+                document.getElementById('methodInfo').innerHTML = `${method.icon || '🧠'} ${method.name}`;
+            }
+            
+            if (!content) {
+                showError('未找到要处理的内容，请返回重新输入');
+                return;
+            }
+            
+            // 直接开始AI处理
+            startAIProcessing();
+        }
+
+        // 开始AI处理
+        async function startAIProcessing() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            processingStartTime = Date.now(); // 记录处理开始时间
+            document.getElementById('statusText').textContent = '正在调用AI服务...';
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('resultSection').classList.remove('show');
+            
+            // 显示停止按钮
+            document.getElementById('stopButtonContainer').style.display = 'block';
+            
+            // 检查API配置
+            const apiConfig = getGlobalApiConfig();
+            const hasValidApiConfig = apiConfig.token && apiConfig.token.trim() !== '' &&
+                                      apiConfig.url && apiConfig.url.trim() !== '' &&
+                                      apiConfig.model && apiConfig.model.trim() !== '';
+            
+            if (!hasValidApiConfig) {
+                console.log('API配置不完整，显示提示');
+                showError('⚠️ API配置不完整\n\n要使用AI智能记忆功能，请先完成API配置。\n\n配置项：\n• API地址\n• AI模型\n• API密钥\n\n点击下方"重试"按钮前往设置页面。');
+                
+                const errorMessage = document.getElementById('errorMessage');
+                const existingRetryBtn = errorMessage.querySelector('.retry-btn');
+                if (!existingRetryBtn) {
+                    const settingsBtn = document.createElement('button');
+                    settingsBtn.className = 'btn btn-primary retry-btn';
+                    settingsBtn.textContent = '前往设置';
+                    settingsBtn.style.marginTop = '10px';
+                    settingsBtn.style.marginLeft = '10px';
+                    settingsBtn.onclick = function() {
+                        if (parent && parent.navigateTo) {
+                            parent.navigateTo('settings');
+                        } else {
+                            window.location.href = 'settings.html';
+                        }
+                    };
+                    errorMessage.appendChild(settingsBtn);
+                }
+                return;
+            }
+            
+            try {
+                const method = JSON.parse(localStorage.getItem('selectedMethod') || '{}');
+                const content = localStorage.getItem('memoryContent') || '';
+                
+                if (!content || !method.id) {
+                    throw new Error('缺少必要的处理参数');
+                }
+                
+                document.getElementById('statusText').textContent = '正在生成记忆方案...';
+                
+                let result;
+                
+                // 尝试调用父窗口的AI处理函数
+                if (parent && parent.memoryApp && parent.memoryApp.processMemoryContent) {
+                    console.log('使用父窗口的AI处理引擎');
+                    
+                    // 准备实时显示
+                    document.getElementById('processingIndicator').style.display = 'none';
+                    document.getElementById('resultSection').classList.add('show');
+                    const resultElement = document.getElementById('resultText');
+                    resultElement.textContent = '';
+                    
+                    // 定义进度回调函数
+                    const onProgress = (partialText) => {
+                        // 使用markdown解析器渲染部分文本
+                        if (window.parseMarkdownWithHighlight) {
+                            resultElement.innerHTML = window.parseMarkdownWithHighlight(partialText);
+                        } else if (window.parseMarkdown) {
+                            resultElement.innerHTML = window.parseMarkdown(partialText);
+                        } else {
+                            // 降级处理
+                            resultElement.textContent = partialText;
+                        }
+                        resultElement.scrollTop = resultElement.scrollHeight;
+                    };
+                    
+                    result = await parent.memoryApp.processMemoryContent(content, method.id, onProgress);
+                } else {
+                    console.log('父窗口AI引擎不可用，尝试直接调用API');
+                    document.getElementById('processingIndicator').style.display = 'none';
+                    document.getElementById('resultSection').classList.add('show');
+                    const resultElement = document.getElementById('resultText');
+                    resultElement.textContent = '';
+
+                    const onProgress = (partialText) => {
+                        if (window.parseMarkdownWithHighlight) {
+                            resultElement.innerHTML = window.parseMarkdownWithHighlight(partialText);
+                        } else if (window.parseMarkdown) {
+                            resultElement.innerHTML = window.parseMarkdown(partialText);
+                        } else {
+                            resultElement.textContent = partialText;
+                        }
+                        resultElement.scrollTop = resultElement.scrollHeight;
+                    };
+
+                    result = await processMemoryContentDirect(content, method, onProgress);
+                }
+                
+                // 显示结果（如果没有使用实时显示）
+                if (!document.getElementById('resultSection').classList.contains('show')) {
+                    showResult(result);
+                } else {
+                    // 实时显示已完成，只需要更新状态
+                    document.getElementById('statusText').textContent = '处理完成';
+                }
+                
+            } catch (error) {
+                console.error('AI处理失败:', error);
+                showError('AI处理失败: ' + error.message);
+            } finally {
+                isProcessing = false;
+                // 隐藏停止按钮
+                document.getElementById('stopButtonContainer').style.display = 'none';
+            }
+        }
+
+        // 显示结果（流式显示）
+        function showResult(text) {
+            document.getElementById('statusText').textContent = '处理完成';
+            document.getElementById('processingIndicator').style.display = 'none';
+            document.getElementById('resultSection').classList.add('show');
+            
+            // 实现流式显示效果
+            streamText(text);
+        }
+
+        // 流式显示文本
+        function streamText(text) {
+            const resultElement = document.getElementById('resultText');
+            // 直接一次性渲染以提升展示速度
+            if (window.parseMarkdownWithHighlight) {
+                resultElement.innerHTML = window.parseMarkdownWithHighlight(text);
+            } else if (window.parseMarkdown) {
+                resultElement.innerHTML = window.parseMarkdown(text);
+            } else {
+                resultElement.textContent = text;
+            }
+            resultElement.scrollTop = resultElement.scrollHeight;
+            // 保存结果
+            resultText = text;
+            localStorage.setItem('lastResult', text);
+            localStorage.setItem('lastResultTime', new Date().toISOString());
+        }
+
+        // 直接处理记忆内容的备用函数
+        async function processMemoryContentDirect(content, method, onProgress = null) {
+            try {
+                const apiConfig = getGlobalApiConfig();
+                console.log('获取到的API配置:', { ...apiConfig, token: apiConfig.token ? '***已隐藏***' : '未设置' });
+                
+                if (apiConfig.token && apiConfig.token.trim() !== '' && 
+                    apiConfig.url && apiConfig.url.trim() !== '' &&
+                    apiConfig.model && apiConfig.model.trim() !== '') {
+                    console.log('使用API调用生成内容');
+                    return await callSiliconFlowAPIDirect(content, method, apiConfig, onProgress);
+                } else {
+                    console.log('使用模拟响应（API配置不完整）');
+                    console.log('配置状态 - token:', !!apiConfig.token, 'url:', !!apiConfig.url, 'model:', !!apiConfig.model);
+                    return await generateMockResponseDirect(content, method, onProgress);
+                }
+            } catch (error) {
+                console.error('API调用失败，使用模拟响应:', error);
+                return await generateMockResponseDirect(content, method, onProgress);
+            }
+        }
+
+        // 从父窗口获取全局API配置
+        function getGlobalApiConfig() {
+            const defaultConfig = {
+                url: 'https://api.siliconflow.cn/v1/chat/completions',
+                model: 'Qwen/Qwen2.5-72B-Instruct',
+                token: '',
+                maxTokens: 800,
+                temperature: 0.5,
+                top_p: 0.9
+            };
+            
+            try {
+                if (window.parent && window.parent.memoryApp && window.parent.memoryApp.apiConfig) {
+                    const parentConfig = window.parent.memoryApp.apiConfig;
+                    console.log('使用父窗口的全局API配置');
+                    return { ...defaultConfig, ...parentConfig };
+                }
+            } catch (error) {
+                console.warn('无法访问父窗口的API配置:', error);
+            }
+            
+            console.log('使用本地API配置');
+            return loadApiConfigLocal();
+        }
+
+        // 加载本地API配置
+        function loadApiConfigLocal() {
+            const defaultConfig = {
+                url: 'https://api.siliconflow.cn/v1/chat/completions',
+                model: 'Qwen/Qwen2.5-72B-Instruct',
+                token: '',
+                maxTokens: 800,
+                temperature: 0.5,
+                top_p: 0.9
+            };
+            
+            try {
+                const saved = localStorage.getItem('apiConfig');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    console.log('本地API配置加载成功');
+                    return { ...defaultConfig, ...parsed };
+                }
+            } catch (error) {
+                console.error('加载本地API配置失败:', error);
+            }
+            
+            return defaultConfig;
+        }
+
+        // 直接调用API
+        async function callSiliconFlowAPIDirect(content, method, apiConfig, onProgress = null) {
+            const prompt = generatePromptDirect(content, method);
+            
+            if (!apiConfig.token || apiConfig.token.trim() === '') {
+                throw new Error('API密钥未配置');
+            }
+            
+            if (!apiConfig.url || apiConfig.url.trim() === '') {
+                throw new Error('API地址未配置');
+            }
+            
+            if (!apiConfig.model || apiConfig.model.trim() === '') {
+                throw new Error('AI模型未配置');
+            }
+            
+            console.log('调用API:', apiConfig.url, '模型:', apiConfig.model);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                console.warn('API请求超时，已中止');
+            }, 120000);
+            
+            try {
+                const response = await fetch(apiConfig.url.trim(), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiConfig.token.trim()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: apiConfig.model.trim(),
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        max_tokens: apiConfig.maxTokens || 800,
+                        temperature: apiConfig.temperature ?? 0.5,
+                        top_p: apiConfig.top_p ?? 0.9,
+                        stream: !!onProgress
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    let errorMessage = `API调用失败 (${response.status})`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error?.message || errorData.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                if (onProgress && response.body) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let result = '';
+
+                    try {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            const chunk = decoder.decode(value);
+                            const lines = chunk.split('\n');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    const data = line.slice(6);
+                                    if (data === '[DONE]') continue;
+                                    try {
+                                        const parsed = JSON.parse(data);
+                                        const delta = parsed.choices?.[0]?.delta?.content;
+                                        if (delta) {
+                                            result += delta;
+                                            onProgress(result);
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+                    } finally {
+                        reader.releaseLock();
+                    }
+                    return result || '抱歉，AI处理出现问题，请稍后重试。';
+                } else {
+                    const data = await response.json();
+                    const result = data.choices?.[0]?.message?.content || '抱歉，AI处理出现问题，请稍后重试。';
+                    return result;
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                
+                if (error.name === 'AbortError') {
+                    throw new Error('API请求超时，请检查网络连接');
+                }
+                
+                throw error;
+            }
+        }
+
+        // 生成提示词
+        function generatePromptDirect(content, method) {
+            try {
+                const map = JSON.parse(localStorage.getItem('customPrompts') || '{}');
+                const cp = map[String(method.id)] || '';
+                if (cp && cp.trim()) {
+                    const hasContent = /\{\{?content\}?\}/i.test(cp);
+                    return hasContent ? cp.replace(/\{\{?content\}?\}/ig, content) : cp + "\n\n内容：" + content;
+                }
+            } catch (e) {}
+            return `请使用"${method.name}"记忆方法来帮助记忆以下内容：
+
+内容：${content}
+
+请提供详细的记忆方案，包括：
+1. 具体的记忆步骤
+2. 记忆要点和技巧
+3. 练习建议
+4. 记忆效果预期
+
+请确保方案实用、易懂、有效。`;
+        }
+
+        // 生成模拟响应
+        async function generateMockResponseDirect(content, method, onProgress = null) {
+            const text = `# ${method.name}记忆方案
+
+## 📝 内容分析
+您要记忆的内容：${content}
+
+## 🎯 记忆步骤
+1. **理解阶段**：首先理解内容的核心含义
+2. **联想阶段**：建立与已知知识的联系
+3. **重复阶段**：通过多次复习巩固记忆
+4. **应用阶段**：在实际场景中运用所学内容
+
+## 💡 记忆技巧
+- 将抽象概念具象化
+- 创建生动的心理图像
+- 建立逻辑关联
+- 使用首字母缩写法
+
+## 🔄 练习建议
+- 每天复习15-20分钟
+- 间隔重复，逐渐延长复习间隔
+- 与他人分享所学内容
+- 定期自我测试
+
+## 📈 预期效果
+通过${method.name}方法，您可以：
+- 提高记忆效率50%以上
+- 延长记忆保持时间
+- 增强理解深度
+- 建立知识体系
+
+*注：此为演示内容，建议配置API密钥获得更个性化的记忆方案。*`;
+
+            if (onProgress) {
+                return new Promise((resolve) => {
+                    const chars = text.split('');
+                    let acc = '';
+                    let i = 0;
+                    const timer = setInterval(() => {
+                        if (i < chars.length) {
+                            acc += chars[i];
+                            onProgress(acc);
+                            i++;
+                        } else {
+                            clearInterval(timer);
+                            resolve(text);
+                        }
+                    }, 10);
+                });
+            }
+            return text;
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.add('show');
+            document.getElementById('processingIndicator').style.display = 'none';
+            addRetryButton();
+        }
+
+        // 添加重试按钮
+        function addRetryButton() {
+            const errorMessage = document.getElementById('errorMessage');
+            if (!errorMessage.querySelector('.retry-btn')) {
+                const retryBtn = document.createElement('button');
+                retryBtn.className = 'btn btn-outline retry-btn';
+                retryBtn.textContent = '重试';
+                retryBtn.style.marginTop = '10px';
+                retryBtn.onclick = retryProcessing;
+                errorMessage.appendChild(retryBtn);
+            }
+        }
+
+        // 重试处理
+        function retryProcessing() {
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('resultSection').classList.remove('show');
+            document.getElementById('processingIndicator').style.display = 'block';
+            startAIProcessing();
+        }
+
+        // 重新生成结果
+        function regenerateResult() {
+            if (confirm('确定要重新生成结果吗？')) {
+                document.getElementById('resultSection').classList.remove('show');
+                document.getElementById('processingIndicator').style.display = 'block';
+                startAIProcessing();
+            }
+        }
+
+        // 保存结果
+        function saveResult() {
+            const result = document.getElementById('resultText').textContent;
+            if (result) {
+                // 计算实际处理时间
+                const processingTime = processingStartTime ? Date.now() - processingStartTime : 0;
+                
+                // 使用与app.js一致的保存方法
+                if (window.parent && window.parent.saveMemoryRecord) {
+                    const method = JSON.parse(localStorage.getItem('selectedMethod') || '{}');
+                    const content = localStorage.getItem('memoryContent') || '';
+                    
+                    // 构造与app.js saveMemoryRecord方法期望的数据结构
+                    const saveData = {
+                        content: content,
+                        methodId: method.id || 'unknown',
+                        result: result,
+                        studyTime: processingTime // 使用实际处理时间
+                    };
+                    
+                    // 调用父窗口的保存方法
+                    const savedRecord = window.parent.saveMemoryRecord(saveData);
+                    
+                    if (savedRecord) {
+                        alert('结果已保存到历史记录！');
+                        // 通知父窗口更新统计
+                        window.parent.postMessage({ action: 'updateStats' }, '*');
+                    } else {
+                        // 如果父窗口方法失败，使用本地保存
+                        saveToLocalStorage(result, processingTime);
+                    }
+                } else {
+                    // 如果无法访问父窗口方法，使用本地保存
+                    saveToLocalStorage(result, processingTime);
+                }
+            }
+        }
+        
+        function saveToLocalStorage(result, processingTime = 0) {
+            // 使用与app.js一致的键名和数据结构
+            const records = JSON.parse(localStorage.getItem('memoryRecords') || '[]');
+            const method = JSON.parse(localStorage.getItem('selectedMethod') || '{}');
+            const content = localStorage.getItem('memoryContent') || '';
+            
+            const record = {
+                id: Date.now().toString(),
+                content: content,
+                methodId: method.id || 'unknown',
+                methodName: method.name || '未知方法',
+                result: result,
+                timestamp: Date.now(),
+                studyTime: processingTime // 使用实际处理时间
+            };
+            
+            records.push(record);
+            
+            // 限制历史记录数量
+            if (records.length > 100) {
+                records.splice(0, records.length - 100);
+            }
+            
+            localStorage.setItem('memoryRecords', JSON.stringify(records));
+            alert('结果已保存到历史记录！');
+        }
+
+        // 分享结果
+        function shareResult() {
+            const result = document.getElementById('resultText').textContent;
+            if (result && navigator.share) {
+                navigator.share({
+                    title: '36智能记忆 - AI优化结果',
+                    text: result.substring(0, 200) + '...',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(result).then(() => {
+                    alert('结果已复制到剪贴板！');
+                }).catch(() => {
+                    alert('分享功能暂不可用');
+                });
+            }
+        }
+
+        // 查看详细结果
+        function viewDetailedResult() {
+            const result = document.getElementById('resultText').textContent;
+            if (result) {
+                localStorage.setItem('lastResult', result);
+                localStorage.setItem('lastResultTime', new Date().toISOString());
+                
+                if (parent && parent.showPage) {
+                    parent.showPage('result');
+                } else if (parent && parent.navigateTo) {
+                    parent.navigateTo('result');
+                } else {
+                    window.location.href = 'result.html';
+                }
+            } else {
+                alert('请等待处理完成后再查看详细结果');
+            }
+        }
+
+        // 停止生成
+        function stopGeneration() {
+            console.log('用户点击停止按钮');
+            
+            // 调用父窗口的停止方法
+            if (parent && parent.stopGeneration) {
+                const stopped = parent.stopGeneration();
+                if (stopped) {
+                    document.getElementById('statusText').textContent = '已停止生成';
+                    document.getElementById('processingIndicator').style.display = 'none';
+                    document.getElementById('stopButtonContainer').style.display = 'none';
+                    isProcessing = false;
+                    
+                    // 显示部分结果（如果有的话）
+                    const resultElement = document.getElementById('resultText');
+                    if (resultElement.textContent || resultElement.innerHTML) {
+                        document.getElementById('resultSection').classList.add('show');
+                        // 保存部分结果
+                        const partialResult = resultElement.textContent || resultElement.innerHTML;
+                        localStorage.setItem('lastResult', partialResult);
+                        localStorage.setItem('lastResultTime', new Date().toISOString());
+                    }
+                }
+            } else {
+                console.log('无法访问父窗口的停止方法');
+                // 本地停止处理
+                isProcessing = false;
+                document.getElementById('statusText').textContent = '已停止生成';
+                document.getElementById('processingIndicator').style.display = 'none';
+                document.getElementById('stopButtonContainer').style.display = 'none';
+            }
+        }
+
+        // 返回上一页
+        function goBack() {
+            if (parent && parent.goBack) {
+                parent.goBack();
+            } else if (parent && parent.memoryApp && parent.memoryApp.goBack) {
+                parent.memoryApp.goBack();
+            } else if (parent && parent.showPage) {
+                // 使用父窗口的showPage函数返回到输入页面
+                parent.showPage('input');
+            } else {
+                // 如果在独立窗口中，返回到输入页面
+                window.location.href = 'input.html';
+            }
+        }
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'startProcessing') {
+                init();
+            }
+        });
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

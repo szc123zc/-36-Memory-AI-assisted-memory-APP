@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - 36智能记忆</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .settings-container {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: calc(100vh - 120px);
+        }
+
+        .settings-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .setting-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .setting-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .setting-control {
+            margin-left: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: #ddd;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(22px);
+        }
+
+        .select-control {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .number-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .number-input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .number-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .number-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .action-item {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .action-item:hover {
+            background: #f8f9fa;
+        }
+
+        .action-icon {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .danger-item {
+            color: #f44336;
+        }
+
+        .danger-item .setting-title {
+            color: #f44336;
+        }
+
+        .danger-item .action-icon {
+            color: #f44336;
+        }
+
+        .profile-section {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            margin: 0 auto 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .version-info {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .app-logo {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <!-- 用户资料 -->
+        <div class="settings-section">
+            <div class="profile-section">
+                <div class="profile-avatar" onclick="changeAvatar()">👤</div>
+                <div class="profile-name" id="profileName">记忆大师</div>
+                <div class="profile-email" id="profileEmail">user@example.com</div>
+                <button class="btn btn-outline" onclick="editProfile()">编辑资料</button>
+                
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalRecords">0</div>
+                        <div class="stat-label">学习记录</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="studyDays">0</div>
+                        <div class="stat-label">学习天数</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="avgScore">0</div>
+                        <div class="stat-label">平均评分</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学习设置 -->
+        <div class="settings-section">
+            <div class="section-header">
+                <span class="section-icon">📚</span>
+                学习设置
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">智能推荐</div>
+                    <div class="setting-desc">根据学习历史推荐最适合的记忆方法</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" onclick="toggleSetting(this, 'smartRecommend')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">默认记忆方法</div>
+                    <div class="setting-desc">设置默认使用的记忆方法</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="defaultMethod" onchange="updateSetting('defaultMethod', this.value)">
+                        <option value="auto">智能选择</option>
+                        <option value="palace">记忆宫殿法</option>
+                        <option value="association">联想记忆法</option>
+                        <option value="story">故事记忆法</option>
+                        <option value="image">图像记忆法</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">学习提醒</div>
+                    <div class="setting-desc">每日学习提醒时间</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="reminderTime" onchange="updateSetting('reminderTime', this.value)">
+                        <option value="off">关闭</option>
+                        <option value="09:00">上午 9:00</option>
+                        <option value="14:00">下午 2:00</option>
+                        <option value="19:00">晚上 7:00</option>
+                        <option value="21:00">晚上 9:00</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">复习间隔</div>
+                    <div class="setting-desc">设置复习提醒的间隔天数</div>
+                </div>
+                <div class="setting-control">
+                    <div class="number-control">
+                        <button class="number-btn" onclick="adjustNumber('reviewInterval', -1)">-</button>
+                        <input type="number" class="number-input" id="reviewInterval" value="3" min="1" max="30" onchange="updateSetting('reviewInterval', this.value)">
+                        <button class="number-btn" onclick="adjustNumber('reviewInterval', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI配置 -->
+        <div class="settings-section">
+            <div class="section-header">
+                <span class="section-icon">🤖</span>
+                AI配置
+            </div>
+            
+            <div class="setting-item action-item" onclick="editApiConfig()">
+                <div class="setting-info">
+                    <div class="setting-title">API地址</div>
+                    <div class="setting-desc" id="apiUrlDisplay">https://api.siliconflow.cn/v1/chat/completions</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🔗</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="editApiModel()">
+                <div class="setting-info">
+                    <div class="setting-title">AI模型</div>
+                    <div class="setting-desc" id="apiModelDisplay">Qwen/Qwen2.5-72B-Instruct</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🧠</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="editApiKey()">
+                <div class="setting-info">
+                    <div class="setting-title">API密钥</div>
+                    <div class="setting-desc" id="apiKeyDisplay">sk-****...已设置</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🔑</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="testApiConnection()">
+                <div class="setting-info">
+                    <div class="setting-title">测试连接</div>
+                    <div class="setting-desc">测试API配置是否正确</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🔍</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="showApiUsageGuide()">
+                <div class="setting-info">
+                    <div class="setting-title">使用说明</div>
+                    <div class="setting-desc">查看API配置帮助文档</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">📖</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 应用设置 -->
+        <div class="settings-section">
+            <div class="section-header">
+                <span class="section-icon">⚙️</span>
+                应用设置
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">深色模式</div>
+                    <div class="setting-desc">使用深色主题保护眼睛</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch" onclick="toggleSetting(this, 'darkMode')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">动画效果</div>
+                    <div class="setting-desc">启用界面动画和过渡效果</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" onclick="toggleSetting(this, 'animations')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">声音反馈</div>
+                    <div class="setting-desc">操作时播放提示音</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch" onclick="toggleSetting(this, 'soundFeedback')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">字体大小</div>
+                    <div class="setting-desc">调整应用内文字大小</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="fontSize" onchange="updateSetting('fontSize', this.value)">
+                        <option value="small">小</option>
+                        <option value="medium" selected>中</option>
+                        <option value="large">大</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据管理 -->
+        <div class="settings-section">
+            <div class="section-header">
+                <span class="section-icon">💾</span>
+                数据管理
+            </div>
+            
+            <div class="setting-item action-item" onclick="exportData()">
+                <div class="setting-info">
+                    <div class="setting-title">导出数据</div>
+                    <div class="setting-desc">导出学习记录和设置</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">📤</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="importData()">
+                <div class="setting-info">
+                    <div class="setting-title">导入数据</div>
+                    <div class="setting-desc">从备份文件恢复数据</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">📥</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="clearCache()">
+                <div class="setting-info">
+                    <div class="setting-title">清除缓存</div>
+                    <div class="setting-desc">清理临时文件释放空间</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🧹</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item danger-item" onclick="clearAllHistory()">
+                <div class="setting-info">
+                    <div class="setting-title">清除历史记录</div>
+                    <div class="setting-desc">删除所有学习记录（不可恢复）</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">🗑️</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item danger-item" onclick="resetApp()">
+                <div class="setting-info">
+                    <div class="setting-title">重置应用</div>
+                    <div class="setting-desc">清除所有数据恢复默认设置</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">⚠️</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关于 -->
+        <div class="settings-section">
+            <div class="section-header">
+                <span class="section-icon">ℹ️</span>
+                关于应用
+            </div>
+            
+            <div class="setting-item action-item" onclick="showAbout()">
+                <div class="setting-info">
+                    <div class="setting-title">应用信息</div>
+                    <div class="setting-desc">查看版本信息和开发者</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">📋</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="showHelp()">
+                <div class="setting-info">
+                    <div class="setting-title">使用帮助</div>
+                    <div class="setting-desc">查看使用说明和常见问题</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">❓</span>
+                </div>
+            </div>
+            
+            <div class="setting-item action-item" onclick="feedback()">
+                <div class="setting-info">
+                    <div class="setting-title">意见反馈</div>
+                    <div class="setting-desc">提交建议或报告问题</div>
+                </div>
+                <div class="setting-control">
+                    <span class="action-icon">💬</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <div class="app-logo">🧠</div>
+            <div>36智能记忆 v1.0.2.1</div>
+            <div>© 2025 AI Memory Assistant</div>
+        </div>
+    </div>
+
+    <!-- 编辑资料模态框 -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">编辑个人资料</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input type="text" class="form-input" id="editName" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-input" id="editEmail" placeholder="请输入邮箱">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('profileModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveProfile()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API配置模态框 -->
+    <div class="modal" id="apiConfigModal">
+        <div class="modal-content">
+            <div class="modal-header">API配置</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">API服务商</label>
+                    <select class="form-input" id="apiProviderSelect" onchange="handleProviderChange()">
+                        <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                        <option value="deepseek">DeepSeek</option>
+                        <option value="custom">自定义地址</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customApiUrlGroup" style="display: none;">
+                    <label class="form-label">自定义API地址</label>
+                    <input type="text" class="form-input" id="editApiUrl" placeholder="请输入API地址">
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    <span id="apiUrlHint">API地址: https://api.siliconflow.cn/v1/chat/completions</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('apiConfigModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveApiConfig()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API模型配置模态框 -->
+    <div class="modal" id="apiModelModal">
+        <div class="modal-content">
+            <div class="modal-header">AI模型配置</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">模型名称</label>
+                    <select class="form-input" id="editApiModel">
+                        <optgroup label="硅基流动 SiliconFlow">
+                            <option value="Qwen/Qwen2.5-72B-Instruct">Qwen2.5-72B-Instruct</option>
+                            <option value="Qwen/Qwen3-Omni-30B-A3B-Captioner">Qwen3-Omni-30B-A3B-Captioner</option>
+                            <option value="deepseek-ai/DeepSeek-V2.5">DeepSeek-V2.5</option>
+                            <option value="meta-llama/Meta-Llama-3.1-405B-Instruct">Llama-3.1-405B-Instruct</option>
+                        </optgroup>
+                        <optgroup label="DeepSeek">
+                            <option value="deepseek-chat">DeepSeek Chat</option>
+                            <option value="deepseek-coder">DeepSeek Coder</option>
+                        </optgroup>
+                        <optgroup label="其他">
+                            <option value="custom">自定义模型</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group" id="customModelGroup" style="display: none;">
+                    <label class="form-label">自定义模型名称</label>
+                    <input type="text" class="form-input" id="customModelName" placeholder="请输入自定义模型名称">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('apiModelModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveApiModel()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API密钥配置模态框 -->
+    <div class="modal" id="apiKeyModal">
+        <div class="modal-content">
+            <div class="modal-header">API密钥配置</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">API密钥</label>
+                    <input type="password" class="form-input" id="editApiKey" placeholder="请输入API密钥">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        密钥将安全存储在本地，不会上传到服务器
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('apiKeyModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API使用说明模态框 -->
+    <div class="modal" id="apiGuideModal">
+        <div class="modal-content" style="max-width: 360px;">
+            <div class="modal-header">📖 API配置使用说明</div>
+            <div class="modal-body" style="text-align: left; line-height: 1.8; font-size: 14px;">
+                <div style="margin-bottom: 16px;">
+                    <strong>🚀 快速开始</strong>
+                    <p style="margin: 8px 0; color: #666;">1. 选择API服务商<br>2. 选择AI模型<br>3. 输入API密钥<br>4. 点击测试连接验证</p>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <strong>🔗 推荐API服务商</strong>
+                    <div style="margin-top: 10px;">
+                        <div style="margin-bottom: 12px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                            <div style="font-weight: 500; margin-bottom: 6px;">硅基流动 SiliconFlow</div>
+                            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">国内可直连，支持多种开源大模型</div>
+                            <a href="javascript:void(0)" onclick="openExternalLink('https://cloud.siliconflow.cn')" style="color: #007AFF; font-size: 13px;">👉 注册获取API密钥</a>
+                        </div>
+                        <div style="padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                            <div style="font-weight: 500; margin-bottom: 6px;">DeepSeek</div>
+                            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">国产大模型，性价比高</div>
+                            <a href="javascript:void(0)" onclick="openExternalLink('https://platform.deepseek.com')" style="color: #007AFF; font-size: 13px;">👉 注册获取API密钥</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <strong>💡 使用提示</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px; color: #666; font-size: 13px;">
+                        <li>API密钥仅存储在本地浏览器</li>
+                        <li>不同服务商的密钥不通用</li>
+                        <li>建议使用硅基流动，国内访问稳定</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <strong>❓ 常见问题</strong>
+                    <div style="margin-top: 8px; font-size: 13px; color: #666;">
+                        <p><strong>连接失败？</strong> 检查密钥是否正确、网络是否正常</p>
+                        <p><strong>响应慢？</strong> 尝试切换其他模型或服务商</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('apiGuideModal')" style="width: 100%;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件输入 -->
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+
+    <script>
+        // 设置数据
+        let settings = {
+            smartRecommend: true,
+            defaultMethod: 'auto',
+            reminderTime: 'off',
+            reviewInterval: 3,
+            darkMode: false,
+            animations: true,
+            soundFeedback: false,
+            fontSize: 'medium'
+        };
+
+        // API配置数据
+        let apiConfig = {
+            url: 'https://api.siliconflow.cn/v1/chat/completions',
+            model: 'Qwen/Qwen2.5-72B-Instruct',
+            token: ''
+        };
+
+        // 用户资料
+        let userProfile = {
+            name: '记忆大师',
+            email: 'user@example.com',
+            avatar: '👤'
+        };
+
+        function loadSettings() {
+            // 从localStorage加载设置
+            const savedSettings = localStorage.getItem('appSettings');
+            if (savedSettings) {
+                settings = { ...settings, ...JSON.parse(savedSettings) };
+            }
+
+            const savedProfile = localStorage.getItem('userProfile');
+            if (savedProfile) {
+                userProfile = { ...userProfile, ...JSON.parse(savedProfile) };
+            }
+
+            // 应用设置到界面
+            applySettings();
+            updateProfile();
+            updateStats();
+        }
+
+        function applySettings() {
+            // 更新开关状态
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                const setting = toggle.getAttribute('onclick').match(/'(\w+)'/)[1];
+                if (settings[setting]) {
+                    toggle.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                }
+            });
+
+            // 更新选择框
+            Object.keys(settings).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = settings[key];
+                }
+            });
+
+            // 应用深色模式
+            if (settings.darkMode) {
+                document.body.classList.add('dark-mode');
+            }
+
+            // 应用字体大小
+            document.body.className = document.body.className.replace(/font-\w+/, '') + ` font-${settings.fontSize}`;
+        }
+
+        function updateProfile() {
+            document.getElementById('profileName').textContent = userProfile.name;
+            document.getElementById('profileEmail').textContent = userProfile.email;
+            document.querySelector('.profile-avatar').textContent = userProfile.avatar;
+        }
+
+        function updateStats() {
+            const history = JSON.parse(localStorage.getItem('memoryRecords') || '[]');
+            const totalRecords = history.length;
+            
+            // 计算学习天数
+            const dates = [...new Set(history.map(item => 
+                new Date(item.timestamp).toDateString()
+            ))];
+            const studyDays = dates.length;
+            
+            // 计算平均评分
+            const avgScore = history.length > 0 
+                ? (history.reduce((sum, item) => sum + (item.rating || 0), 0) / history.length).toFixed(1)
+                : '0.0';
+
+            document.getElementById('totalRecords').textContent = totalRecords;
+            document.getElementById('studyDays').textContent = studyDays;
+            document.getElementById('avgScore').textContent = avgScore;
+        }
+
+        function toggleSetting(element, settingKey) {
+            element.classList.toggle('active');
+            settings[settingKey] = element.classList.contains('active');
+            saveSettings();
+
+            // 特殊处理
+            if (settingKey === 'darkMode') {
+                document.body.classList.toggle('dark-mode', settings[settingKey]);
+            }
+        }
+
+        function updateSetting(key, value) {
+            settings[key] = value;
+            saveSettings();
+
+            // 特殊处理
+            if (key === 'fontSize') {
+                document.body.className = document.body.className.replace(/font-\w+/, '') + ` font-${value}`;
+            }
+        }
+
+        function adjustNumber(key, delta) {
+            const input = document.getElementById(key);
+            const newValue = Math.max(1, Math.min(30, parseInt(input.value) + delta));
+            input.value = newValue;
+            updateSetting(key, newValue);
+        }
+
+        function saveSettings() {
+            localStorage.setItem('appSettings', JSON.stringify(settings));
+        }
+
+        function saveProfile() {
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        }
+
+        function editProfile() {
+            document.getElementById('editName').value = userProfile.name;
+            document.getElementById('editEmail').value = userProfile.email;
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        function saveProfile() {
+            userProfile.name = document.getElementById('editName').value || userProfile.name;
+            userProfile.email = document.getElementById('editEmail').value || userProfile.email;
+            
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            updateProfile();
+            closeModal('profileModal');
+        }
+
+        function changeAvatar() {
+            const avatars = ['👤', '🧠', '📚', '🎓', '💡', '🌟', '🚀', '🎯'];
+            const currentIndex = avatars.indexOf(userProfile.avatar);
+            const nextIndex = (currentIndex + 1) % avatars.length;
+            userProfile.avatar = avatars[nextIndex];
+            
+            updateProfile();
+            saveProfile();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function exportData() {
+            const data = {
+                settings: settings,
+                profile: userProfile,
+                history: JSON.parse(localStorage.getItem('memoryRecords') || '[]'),
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `36智能记忆_备份_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (confirm('确定要导入数据吗？这将覆盖当前的所有设置和记录。')) {
+                        if (data.settings) {
+                            settings = { ...settings, ...data.settings };
+                            localStorage.setItem('appSettings', JSON.stringify(settings));
+                        }
+                        
+                        if (data.profile) {
+                            userProfile = { ...userProfile, ...data.profile };
+                            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                        }
+                        
+                        if (data.history) {
+                            localStorage.setItem('memoryRecords', JSON.stringify(data.history));
+                        }
+                        
+                        alert('数据导入成功！');
+                        location.reload();
+                    }
+                } catch (error) {
+                    alert('文件格式错误，请选择正确的备份文件。');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearCache() {
+            if (confirm('确定要清除缓存吗？这将删除临时文件但保留学习记录。')) {
+                // 清除除了重要数据外的其他缓存
+                const importantKeys = ['appSettings', 'userProfile', 'memoryRecords'];
+                const keysToRemove = [];
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!importantKeys.includes(key)) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                alert('缓存清除完成！');
+            }
+        }
+
+        function clearAllHistory() {
+            const historyCount = JSON.parse(localStorage.getItem('memoryRecords') || '[]').length;
+            
+            if (historyCount === 0) {
+                alert('当前没有历史记录可清除。');
+                return;
+            }
+            
+            if (confirm(`确定要清除所有 ${historyCount} 条历史记录吗？\n\n此操作不可恢复！`)) {
+                if (confirm('最后确认：这将永久删除所有学习记录！\n\nAPI配置和个人设置将保留。')) {
+                    localStorage.setItem('memoryRecords', JSON.stringify([]));
+                    updateStats();
+                    alert('所有历史记录已清除！');
+                }
+            }
+        }
+
+        function resetApp() {
+            if (confirm('确定要重置应用吗？这将删除所有数据和设置，且无法恢复！')) {
+                if (confirm('请再次确认：这将永久删除所有学习记录和个人设置！')) {
+                    localStorage.clear();
+                    alert('应用已重置，页面将刷新。');
+                    location.reload();
+                }
+            }
+        }
+
+        function showAbout() {
+            alert(`36智能记忆 v1.0.2
+
+🧠 AI驱动的智能记忆助手
+📚 36种科学记忆方法
+🎯 个性化学习体验
+📊 详细学习统计
+
+开发者：Nanfeng
+联系QQ：2903560266
+
+© 2025 All Rights Reserved`);
+        }
+
+        function showHelp() {
+            alert(`使用帮助
+
+📝 如何开始：
+1. 在首页点击"开始记忆"
+2. 输入要记忆的内容
+3. 选择合适的记忆方法
+4. 查看AI优化结果
+
+🎯 记忆方法：
+• 记忆宫殿法：适合空间记忆
+• 联想记忆法：适合关联记忆
+• 故事记忆法：适合情节记忆
+• 图像记忆法：适合视觉记忆
+
+📊 查看历史：
+在历史页面可以查看所有学习记录，支持搜索、筛选和评分。
+
+⚙️ 个性化设置：
+在设置页面可以调整学习偏好、提醒时间等。
+
+如需更多帮助，请联系客服。`);
+        }
+
+        function feedback() {
+            const feedback = prompt(`请输入您的意见或建议：
+
+我们重视每一条反馈，您的建议将帮助我们改进产品。
+
+类型：
+• 功能建议
+• 问题报告  
+• 使用体验
+• 其他意见`);
+
+            if (feedback && feedback.trim()) {
+                // 这里可以发送到服务器
+                alert('感谢您的反馈！我们会认真考虑您的建议。');
+            }
+        }
+
+        // API配置相关函数
+        const API_PROVIDERS = {
+            siliconflow: {
+                name: '硅基流动 (SiliconFlow)',
+                url: 'https://api.siliconflow.cn/v1/chat/completions',
+                defaultModel: 'Qwen/Qwen2.5-72B-Instruct'
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                url: 'https://api.deepseek.com/chat/completions',
+                defaultModel: 'deepseek-chat'
+            }
+        };
+
+        function getProviderFromUrl(url) {
+            for (const [key, provider] of Object.entries(API_PROVIDERS)) {
+                if (url.includes(provider.url.split('/')[2])) {
+                    return key;
+                }
+            }
+            return 'custom';
+        }
+
+        function editApiConfig() {
+            const currentProvider = getProviderFromUrl(apiConfig.url);
+            const providerSelect = document.getElementById('apiProviderSelect');
+            const customUrlGroup = document.getElementById('customApiUrlGroup');
+            const urlHint = document.getElementById('apiUrlHint');
+            
+            providerSelect.value = currentProvider;
+            
+            if (currentProvider === 'custom') {
+                customUrlGroup.style.display = 'block';
+                document.getElementById('editApiUrl').value = apiConfig.url;
+                urlHint.textContent = 'API地址: ' + apiConfig.url;
+            } else {
+                customUrlGroup.style.display = 'none';
+                urlHint.textContent = 'API地址: ' + API_PROVIDERS[currentProvider].url;
+            }
+            
+            document.getElementById('apiConfigModal').classList.add('show');
+        }
+
+        function handleProviderChange() {
+            const providerSelect = document.getElementById('apiProviderSelect');
+            const customUrlGroup = document.getElementById('customApiUrlGroup');
+            const urlHint = document.getElementById('apiUrlHint');
+            const selectedProvider = providerSelect.value;
+            
+            if (selectedProvider === 'custom') {
+                customUrlGroup.style.display = 'block';
+                urlHint.textContent = '请输入自定义API地址';
+            } else {
+                customUrlGroup.style.display = 'none';
+                urlHint.textContent = 'API地址: ' + API_PROVIDERS[selectedProvider].url;
+            }
+        }
+
+        function saveApiConfig() {
+            const providerSelect = document.getElementById('apiProviderSelect');
+            const selectedProvider = providerSelect.value;
+            let newUrl;
+            
+            if (selectedProvider === 'custom') {
+                newUrl = document.getElementById('editApiUrl').value.trim();
+                if (!newUrl) {
+                    alert('请输入有效的API地址');
+                    return;
+                }
+                
+                try {
+                    new URL(newUrl);
+                } catch (e) {
+                    alert('请输入有效的URL地址\n\n格式示例：https://api.example.com/v1/chat/completions');
+                    return;
+                }
+            } else {
+                newUrl = API_PROVIDERS[selectedProvider].url;
+            }
+            
+            apiConfig.url = newUrl;
+            document.getElementById('apiUrlDisplay').textContent = newUrl;
+            saveApiConfigToStorage();
+            closeModal('apiConfigModal');
+            notifyParentConfigUpdate();
+            
+            alert('API地址已更新为：' + newUrl);
+        }
+
+        function editApiModel() {
+            document.getElementById('editApiModel').value = apiConfig.model;
+            document.getElementById('apiModelModal').classList.add('show');
+            
+            // 监听模型选择变化
+            document.getElementById('editApiModel').onchange = function() {
+                const customGroup = document.getElementById('customModelGroup');
+                if (this.value === 'custom') {
+                    customGroup.style.display = 'block';
+                } else {
+                    customGroup.style.display = 'none';
+                }
+            };
+        }
+
+        function saveApiModel() {
+            const modelSelect = document.getElementById('editApiModel');
+            let newModel = modelSelect.value;
+            
+            if (newModel === 'custom') {
+                const customModel = document.getElementById('customModelName').value.trim();
+                if (!customModel) {
+                    alert('请输入自定义模型名称');
+                    return;
+                }
+                newModel = customModel;
+            }
+            
+            apiConfig.model = newModel;
+            document.getElementById('apiModelDisplay').textContent = newModel;
+            saveApiConfigToStorage();
+            closeModal('apiModelModal');
+            notifyParentConfigUpdate();
+        }
+
+        function editApiKey() {
+            const keyInput = document.getElementById('editApiKey');
+            keyInput.value = '';
+            keyInput.placeholder = '请输入API密钥（如：sk-xxxxxxxxxxxx）';
+            document.getElementById('apiKeyModal').classList.add('show');
+        }
+
+        function saveApiKey() {
+            const newToken = document.getElementById('editApiKey').value.trim();
+            if (!newToken) {
+                alert('请输入有效的API密钥');
+                return;
+            }
+            
+            if (newToken.length < 8) {
+                alert('API密钥长度不足，请检查是否正确复制');
+                return;
+            }
+            
+            apiConfig.token = newToken;
+            updateApiConfigDisplay();
+            saveApiConfigToStorage();
+            closeModal('apiKeyModal');
+            notifyParentConfigUpdate();
+            alert('API密钥保存成功！');
+        }
+
+        function saveApiConfigToStorage() {
+            console.log('保存API配置:', { ...apiConfig, token: apiConfig.token ? '***已隐藏***' : '未设置' });
+            try {
+                localStorage.setItem('apiConfig', JSON.stringify(apiConfig));
+                console.log('API配置保存成功');
+                return true;
+            } catch (error) {
+                console.error('API配置保存失败:', error);
+                return false;
+            }
+        }
+
+        function loadApiConfig() {
+            try {
+                const saved = localStorage.getItem('apiConfig');
+                if (saved) {
+                    const parsedConfig = JSON.parse(saved);
+                    apiConfig = { ...apiConfig, ...parsedConfig };
+                    console.log('API配置加载成功:', { ...apiConfig, token: apiConfig.token ? '***已隐藏***' : '未设置' });
+                } else {
+                    console.log('未找到保存的API配置，使用默认配置');
+                }
+                updateApiConfigDisplay();
+            } catch (error) {
+                console.error('加载API配置失败:', error);
+                updateApiConfigDisplay();
+            }
+        }
+
+        function updateApiConfigDisplay() {
+            const urlDisplay = document.getElementById('apiUrlDisplay');
+            const modelDisplay = document.getElementById('apiModelDisplay');
+            const keyDisplay = document.getElementById('apiKeyDisplay');
+            
+            if (urlDisplay) {
+                urlDisplay.textContent = apiConfig.url || '未设置';
+            }
+            
+            if (modelDisplay) {
+                modelDisplay.textContent = apiConfig.model || '未设置';
+            }
+            
+            if (keyDisplay) {
+                if (apiConfig.token && apiConfig.token.trim() !== '') {
+                    const token = apiConfig.token.trim();
+                    if (token.length > 8) {
+                        keyDisplay.textContent = token.substring(0, 4) + '****' + token.slice(-4);
+                    } else if (token.length > 4) {
+                        keyDisplay.textContent = token.substring(0, 2) + '****';
+                    } else {
+                        keyDisplay.textContent = '****已设置';
+                    }
+                } else {
+                    keyDisplay.textContent = '未设置';
+                }
+            }
+        }
+
+        function notifyParentConfigUpdate() {
+            try {
+                if (window.parent && window.parent.memoryApp) {
+                    window.parent.memoryApp.updateApiConfig(apiConfig);
+                    console.log('已通知主应用更新配置');
+                }
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'apiConfigUpdated',
+                        data: apiConfig
+                    }, '*');
+                }
+            } catch (error) {
+                console.warn('通知主应用更新配置失败:', error);
+            }
+        }
+
+        async function testApiConnection(event) {
+            const clickEvent = event || window.event;
+            console.log('开始API连接测试');
+            console.log('当前API配置:', { ...apiConfig, token: apiConfig.token ? '***已隐藏***' : '未设置' });
+            
+            if (!apiConfig.token || apiConfig.token.trim() === '') {
+                alert('请先设置API密钥\n\n诊断信息：\n- API密钥未配置\n- 请在上方设置API密钥后重试');
+                return;
+            }
+
+            if (!apiConfig.url || apiConfig.url.trim() === '') {
+                alert('请先设置API地址\n\n诊断信息：\n- API地址未配置\n- 请在上方设置API地址后重试');
+                return;
+            }
+
+            if (!apiConfig.model || apiConfig.model.trim() === '') {
+                alert('请先设置AI模型\n\n诊断信息：\n- AI模型未配置\n- 请在上方设置AI模型后重试');
+                return;
+            }
+
+            let testButton = null;
+            let originalText = '';
+            
+            if (clickEvent && clickEvent.target) {
+                testButton = clickEvent.target.closest('.setting-item');
+                if (testButton) {
+                    const descElement = testButton.querySelector('.setting-desc');
+                    if (descElement) {
+                        originalText = descElement.textContent;
+                        descElement.textContent = '测试中...';
+                    }
+                }
+            }
+
+            try {
+                console.log('发送API测试请求...');
+                console.log('请求URL:', apiConfig.url);
+                console.log('请求模型:', apiConfig.model);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                const response = await fetch(apiConfig.url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiConfig.token.trim()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: apiConfig.model.trim(),
+                        messages: [
+                            {
+                                role: 'user',
+                                content: '你好，这是一个连接测试，请简单回复"测试成功"'
+                            }
+                        ],
+                        max_tokens: 20,
+                        temperature: 0.1
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                console.log('API响应状态:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('API测试成功，响应数据:', data);
+                    const replyContent = data.choices?.[0]?.message?.content || '无响应内容';
+                    alert('✅ API连接测试成功！\n\n配置信息：\n- API地址：' + apiConfig.url + '\n- 模型：' + apiConfig.model + '\n- 状态：正常\n\nAI响应：' + replyContent.substring(0, 50));
+                } else {
+                    let errorMsg = '未知错误';
+                    let errorDetails = '';
+                    
+                    try {
+                        const errorData = await response.json();
+                        console.error('API测试失败，错误数据:', errorData);
+                        errorMsg = errorData.error?.message || errorData.message || response.statusText;
+                        errorDetails = errorData.error?.type || '';
+                    } catch (parseError) {
+                        errorMsg = response.statusText || '服务器返回错误';
+                    }
+                    
+                    let diagnosis = '';
+                    if (response.status === 401 || response.status === 403) {
+                        diagnosis = '\n\n诊断建议：\n- API密钥无效或已过期\n- 请检查密钥是否正确复制';
+                    } else if (response.status === 404) {
+                        diagnosis = '\n\n诊断建议：\n- API地址不正确\n- 模型名称可能不存在';
+                    } else if (response.status === 429) {
+                        diagnosis = '\n\n诊断建议：\n- 请求频率过高\n- 请稍后重试';
+                    } else if (response.status >= 500) {
+                        diagnosis = '\n\n诊断建议：\n- 服务器内部错误\n- 请稍后重试';
+                    } else {
+                        diagnosis = '\n\n诊断建议：\n- 检查API配置是否正确\n- 确认网络连接正常';
+                    }
+                    
+                    alert('❌ API连接测试失败\n\nHTTP状态码：' + response.status + '\n错误信息：' + errorMsg + diagnosis);
+                }
+            } catch (error) {
+                console.error('API测试异常:', error);
+                let errorMsg = error.message || '未知错误';
+                let diagnosis = '';
+                
+                if (error.name === 'AbortError') {
+                    errorMsg = '请求超时';
+                    diagnosis = '\n诊断建议：\n- 服务器响应时间过长\n- 请检查网络连接';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    diagnosis = '\n诊断建议：\n- 检查网络连接是否正常\n- 确认API服务器地址正确\n- 可能存在跨域限制（CORS）\n- 尝试使用其他网络环境';
+                } else if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+                    diagnosis = '\n诊断建议：\n- 存在跨域访问限制\n- 请联系API提供商或使用代理';
+                } else {
+                    diagnosis = '\n诊断建议：\n- 检查API配置是否正确\n- 查看浏览器控制台获取详细错误信息';
+                }
+                
+                alert('❌ API连接测试失败\n\n错误类型：' + error.name + '\n错误信息：' + errorMsg + diagnosis);
+            } finally {
+                if (testButton) {
+                    const descElement = testButton.querySelector('.setting-desc');
+                    if (descElement && originalText) {
+                        descElement.textContent = originalText;
+                    }
+                }
+            }
+        }
+
+        function showApiUsageGuide() {
+            document.getElementById('apiGuideModal').classList.add('show');
+        }
+
+        function openExternalLink(url) {
+            if (typeof plus !== 'undefined') {
+                plus.runtime.openURL(url, function(err) {
+                    console.error('打开链接失败:', err);
+                    alert('无法打开链接，请手动复制地址：\n' + url);
+                });
+            } else if (window.parent && typeof window.parent.plus !== 'undefined') {
+                window.parent.plus.runtime.openURL(url, function(err) {
+                    console.error('打开链接失败:', err);
+                    alert('无法打开链接，请手动复制地址：\n' + url);
+                });
+            } else {
+                window.open(url, '_system');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            loadApiConfig();
+        });
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'refreshStats') {
+                updateStats();
+            }
+        });
+
+        // 点击模态框外部关闭
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

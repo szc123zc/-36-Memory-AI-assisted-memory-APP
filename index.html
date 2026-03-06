@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>36智能记忆</title>
+    <link rel="stylesheet" href="css/global.css">
+    <script type="text/javascript">
+        document.addEventListener('plusready', function(){
+            //console.log("所有plus api都应该在此事件发生后调用，否则会出现plus is undefined。")
+        });
+    </script>
+</head>
+<body>
+    <div class="device-container">
+        <div class="device-screen">
+            <!-- 状态栏已移除，使用系统原生状态栏 -->
+
+            <!-- 导航栏 -->
+            <div class="nav-bar">
+                <button class="nav-button back-button" style="visibility: hidden;">‹ 返回</button>
+                <div class="nav-title">36记 智能记忆助手</div>
+                <button class="nav-button" onclick="showPage('settings')">设置</button>
+            </div>
+
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <iframe id="mainContent" 
+                        src="pages/home.html" 
+                        frameborder="0" 
+                        style="width: 100%; height: 100%; border: none;">
+                </iframe>
+            </div>
+
+            <!-- 底部导航栏 -->
+            <div class="tab-bar">
+                <div class="tab-item active" data-page="home">
+                    <div class="tab-icon">🏠</div>
+                    <div class="tab-text">首页</div>
+                </div>
+                <div class="tab-item" data-page="input">
+                    <div class="tab-icon">🧠</div>
+                    <div class="tab-text">记忆</div>
+                </div>
+                <div class="tab-item" data-page="methods">
+                    <div class="tab-icon">📚</div>
+                    <div class="tab-text">方法</div>
+                </div>
+                <div class="tab-item" data-page="history">
+                    <div class="tab-icon">📊</div>
+                    <div class="tab-text">历史</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentPage = 'home';
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
+            
+            // 等待app.js初始化完成后再设置页面
+            setTimeout(() => {
+                const initialPage = (location.hash && location.hash.slice(1)) || new URLSearchParams(location.search).get('page') || 'home';
+                showPage(initialPage);
+            }, 200);
+            
+            // 监听来自iframe的消息
+            window.addEventListener('message', function(event) {
+                if (event.data.action === 'navigate') {
+                    showPage(event.data.page);
+                } else if (event.data.action === 'updateStats') {
+                    // 如果当前在设置页面，通知更新统计
+                    if (currentPage === 'settings') {
+                         const iframe = document.getElementById('mainContent');
+                         iframe.contentWindow.postMessage({ action: 'refreshStats' }, '*');
+                     }
+                }
+            });
+            
+            // 绑定tab点击事件
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    handleTabClick(page);
+                });
+            });
+        });
+
+        function showPage(page) {
+             currentPage = page;
+             const iframe = document.getElementById('mainContent');
+             
+             // 确保iframe存在
+             if (!iframe) {
+                 console.error('iframe element not found');
+                 return;
+             }
+             
+             // 设置新的src
+             const newSrc = `pages/${page}.html`;
+             console.log('Loading page:', newSrc);
+             iframe.src = newSrc;
+            
+            // 更新导航状态
+            updateNavigationState(page);
+        }
+
+        function updateNavigationState(page) {
+            // 更新tab状态
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 根据页面类型更新对应的tab
+            const pageTabMap = {
+                'home': 'home',
+                'input': 'input',
+                'methods': 'methods', 
+                'processing': 'input',  // 处理页面属于记忆流程
+                'result': 'input',      // 结果页面属于记忆流程
+                'history': 'history',
+                'settings': 'history'   // 设置页面暂时归到历史tab下
+            };
+            
+            const tabName = pageTabMap[page] || 'home';
+            const tabElement = document.querySelector(`[data-page="${tabName}"]`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+
+            // 更新返回按钮状态
+            const backButton = document.querySelector('.back-button');
+            const navTitle = document.querySelector('.nav-title');
+            
+            // 记忆流程的子页面显示返回按钮
+            if (['processing', 'result'].includes(page)) {
+                backButton.style.visibility = 'visible';
+                backButton.onclick = () => {
+                    // 使用app.js中的goBack函数返回到上一级
+                    if (window.goBack) {
+                        window.goBack();
+                    } else if (window.memoryApp && window.memoryApp.goBack) {
+                        window.memoryApp.goBack();
+                    } else {
+                        // 备用方案：返回到记忆输入页面
+                        showPage('input');
+                    }
+                };
+                
+                // 更新标题
+                if (page === 'processing') {
+                    navTitle.textContent = 'AI处理中';
+                } else if (page === 'result') {
+                    navTitle.textContent = '记忆结果';
+                }
+            } else if (page === 'settings') {
+                backButton.style.visibility = 'visible';
+                backButton.onclick = () => {
+                    // 使用app.js中的goBack函数返回到上一级
+                    if (window.goBack) {
+                        window.goBack();
+                    } else if (window.memoryApp && window.memoryApp.goBack) {
+                        window.memoryApp.goBack();
+                    } else {
+                        // 备用方案：从设置页面返回到历史页面
+                        showPage('history');
+                    }
+                };
+                navTitle.textContent = '设置';
+            } else {
+                backButton.style.visibility = 'hidden';
+                // 恢复默认标题
+                const pageTitles = {
+                    'home': '36记 智能记忆助手',
+                    'input': '智能记忆',
+                    'methods': '记忆方法',
+                    'history': '学习历史'
+                };
+                navTitle.textContent = pageTitles[page] || '36记 智能记忆助手';
+            }
+        }
+
+        // 处理tab点击
+        function handleTabClick(tabPage) {
+            // 根据tab决定显示的具体页面
+            let targetPage = tabPage;
+            
+            if (tabPage === 'input') {
+                // 记忆tab默认显示输入页面
+                targetPage = 'input';
+            }
+            
+            showPage(targetPage);
+        }
+    </script>
+</body>
+</html>

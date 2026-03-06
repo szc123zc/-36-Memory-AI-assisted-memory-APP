@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆结果 - 36智能记忆</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .result-container {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: calc(100vh - 120px);
+        }
+
+        .result-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .method-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .content-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .content-type, .content-length {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #f0f8ff;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+
+        .content-length {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .content-text {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-icon {
+            font-size: 18px;
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .original-content {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .original-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .original-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .ai-result {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #667eea;
+            position: relative;
+        }
+
+        .ai-label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ai-content {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .ai-content h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+        }
+
+        .ai-content ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .ai-content li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .ai-content .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .method-details {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .method-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .method-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn .btn-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .action-btn .btn-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .rating-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .rating-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            font-size: 32px;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .star.active {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .star:hover {
+            transform: scale(1.2);
+        }
+
+        .rating-text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .rating-comment {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 15px;
+        }
+
+        .save-rating-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-rating-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .tips-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tips-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .tips-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        .tip-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .tip-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .share-modal.show {
+            display: flex;
+        }
+
+        .share-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .share-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .share-option {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #f0f0f0;
+        }
+
+        .share-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .share-option-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .share-option-text {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <!-- 结果头部 -->
+        <div class="result-header">
+            <div class="success-icon">🎉</div>
+            <div class="result-title">记忆优化完成！</div>
+            <div class="result-subtitle">AI已为您生成个性化的记忆方案</div>
+            <div class="method-badge" id="methodBadge">记忆宫殿法</div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-value" id="processingTime">2.3s</div>
+                <div class="stat-label">处理时间</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="matchScore">95%</div>
+                <div class="stat-label">匹配度</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="difficulty">中等</div>
+                <div class="stat-label">难度</div>
+            </div>
+        </div>
+
+        <!-- 原始内容和AI结果 -->
+        <div class="content-section">
+            <div class="section-header">
+                <span>📝 记忆内容</span>
+                <span class="section-icon">💡</span>
+            </div>
+            <div class="section-content">
+                <div class="original-content">
+                    <div class="original-label">原始内容</div>
+                    <div class="original-text" id="originalContent">
+                        圆周率π = 3.14159265358979323846...
+                    </div>
+                </div>
+                
+                <div class="ai-result">
+                    <div class="ai-label">🤖 AI优化结果</div>
+                    <div class="ai-content" id="aiContent">
+                        <h3>🏰 记忆宫殿法 - 圆周率记忆</h3>
+                        <p>想象你走进一座<span class="highlight">数字宫殿</span>，每个房间都有独特的故事：</p>
+                        <ul>
+                            <li><strong>大门(3)：</strong>三角形的大门，象征着几何的开始</li>
+                            <li><strong>客厅(1)：</strong>一根蜡烛照亮整个房间</li>
+                            <li><strong>厨房(4)：</strong>四个炉灶正在烹饪</li>
+                            <li><strong>卧室(1)：</strong>一张舒适的单人床</li>
+                            <li><strong>书房(5)：</strong>五本厚重的数学书籍</li>
+                        </ul>
+                        <p>继续在宫殿中漫步，每个数字都有其独特的位置和故事...</p>
+                        
+                        <div class="method-details">
+                            <div class="method-title">💡 记忆技巧</div>
+                            <div class="method-description">
+                                通过空间记忆和视觉联想，将抽象的数字转化为具体的场景。每次回忆时，只需在脑海中重新"走过"这座宫殿即可。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学习建议 -->
+        <div class="tips-section">
+            <div class="tips-title">
+                <span class="tips-icon">💡</span>
+                学习建议
+            </div>
+            <div id="tipsContainer">
+                <div class="tip-item">
+                    <div class="tip-text">建议每天复习2-3次，间隔时间逐渐延长</div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-text">可以绘制宫殿平面图，加强视觉记忆</div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-text">尝试在真实环境中"走过"这个记忆路径</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <div class="action-btn" onclick="regenerateResult()">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">重新生成</span>
+            </div>
+            <div class="action-btn" onclick="shareResult()">
+                <span class="btn-icon">📤</span>
+                <span class="btn-text">分享结果</span>
+            </div>
+            <div class="action-btn" onclick="saveToHistory()">
+                <span class="btn-icon">💾</span>
+                <span class="btn-text">保存记录</span>
+            </div>
+            <div class="action-btn" onclick="startNewMemory()">
+                <span class="btn-icon">➕</span>
+                <span class="btn-text">新建记忆</span>
+            </div>
+        </div>
+
+        <!-- 评分区域 -->
+        <div class="rating-section">
+            <div class="rating-title">为这次记忆体验评分</div>
+            <div class="rating-stars">
+                <span class="star" data-rating="1" onclick="setRating(1)">⭐</span>
+                <span class="star" data-rating="2" onclick="setRating(2)">⭐</span>
+                <span class="star" data-rating="3" onclick="setRating(3)">⭐</span>
+                <span class="star" data-rating="4" onclick="setRating(4)">⭐</span>
+                <span class="star" data-rating="5" onclick="setRating(5)">⭐</span>
+            </div>
+            <div class="rating-text" id="ratingText">点击星星进行评分</div>
+            <textarea class="rating-comment" id="ratingComment" placeholder="分享您的使用感受（可选）"></textarea>
+            <button class="save-rating-btn" onclick="saveRating()">提交评价</button>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div>正在重新生成...</div>
+        </div>
+    </div>
+
+    <!-- 分享模态框 -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-content">
+            <div class="share-header">分享记忆结果</div>
+            <div class="share-options">
+                <div class="share-option" onclick="shareToWeChat()">
+                    <div class="share-option-icon">💬</div>
+                    <div class="share-option-text">微信</div>
+                </div>
+                <div class="share-option" onclick="shareToWeibo()">
+                    <div class="share-option-icon">📱</div>
+                    <div class="share-option-text">微博</div>
+                </div>
+                <div class="share-option" onclick="shareToQQ()">
+                    <div class="share-option-icon">🐧</div>
+                    <div class="share-option-text">QQ</div>
+                </div>
+                <div class="share-option" onclick="copyLink()">
+                    <div class="share-option-icon">🔗</div>
+                    <div class="share-option-text">复制链接</div>
+                </div>
+                <div class="share-option" onclick="saveAsImage()">
+                    <div class="share-option-icon">📷</div>
+                    <div class="share-option-text">保存图片</div>
+                </div>
+                <div class="share-option" onclick="exportPDF()">
+                    <div class="share-option-icon">📄</div>
+                    <div class="share-option-text">导出PDF</div>
+                </div>
+            </div>
+            <button class="btn btn-outline" onclick="closeShareModal()" style="width: 100%;">取消</button>
+        </div>
+    </div>
+
+    <script>
+        let currentRating = 0;
+        let resultData = {};
+
+        function loadResultData() {
+            // 从localStorage获取处理结果
+            const lastResult = localStorage.getItem('lastResult');
+            const method = JSON.parse(localStorage.getItem('selectedMethod') || '{}');
+            const content = localStorage.getItem('memoryContent') || '';
+            const contentType = localStorage.getItem('contentType') || '通用';
+            
+            if (lastResult && content) {
+                resultData = {
+                    originalContent: content,
+                    method: method.name || '记忆宫殿法',
+                    methodId: method.id || 'memory_palace', // 添加methodId字段
+                    methodIcon: method.icon || '🧠',
+                    aiResult: formatAIResult(lastResult),
+                    processingTime: generateProcessingTime(),
+                    matchScore: generateMatchScore(method, contentType),
+                    difficulty: assessDifficulty(content),
+                    contentType: contentType,
+                    timestamp: localStorage.getItem('lastResultTime') || new Date().toISOString()
+                };
+                displayResult();
+            } else {
+                // 如果没有数据，使用示例数据
+                resultData = {
+                    originalContent: '圆周率π = 3.14159265358979323846...',
+                    method: '记忆宫殿法',
+                    methodId: 'memory_palace', // 添加methodId字段
+                    methodIcon: '🏰',
+                    aiResult: generateSampleResult(),
+                    processingTime: '2.3s',
+                    matchScore: '95%',
+                    difficulty: '中等',
+                    contentType: '数学公式',
+                    timestamp: new Date().toISOString()
+                };
+                displayResult();
+            }
+        }
+
+        function formatAIResult(rawResult) {
+            // 将纯文本结果转换为HTML格式
+            let formatted = rawResult
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^(#{1,3})\s+(.+)$/gm, '<h3>$2</h3>')
+                .replace(/^•\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+            
+            // 包装列表项
+            formatted = formatted.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+            
+            // 包装段落
+            if (!formatted.startsWith('<h3>') && !formatted.startsWith('<ul>')) {
+                formatted = '<p>' + formatted + '</p>';
+            }
+            
+            return formatted;
+        }
+
+        function generateProcessingTime() {
+            return (Math.random() * 2 + 1.5).toFixed(1) + 's';
+        }
+
+        function generateMatchScore(method, contentType) {
+            // 根据方法和内容类型生成匹配度
+            const baseScore = 75 + Math.random() * 20;
+            const methodBonus = getMethodBonus(method.name, contentType);
+            return Math.min(99, Math.round(baseScore + methodBonus)) + '%';
+        }
+
+        function getMethodBonus(methodName, contentType) {
+            const bonusMap = {
+                '数字记忆法': { '数学公式': 15, '历史年代': 10, '电话号码': 20 },
+                '图像记忆法': { '生物知识': 15, '地理知识': 12, '诗词': 8 },
+                '故事记忆法': { '历史事件': 18, '文学作品': 15, '单词': 12 },
+                '位置记忆法': { '地理知识': 20, '历史事件': 10, '演讲': 15 },
+                '韵律记忆法': { '诗词': 20, '单词': 15, '公式': 8 },
+                '分类记忆法': { '生物知识': 18, '化学知识': 15, '词汇': 12 }
+            };
+            
+            return bonusMap[methodName]?.[contentType] || 5;
+        }
+
+        function assessDifficulty(content) {
+            const length = content.length;
+            const complexity = (content.match(/[0-9]/g) || []).length + 
+                             (content.match(/[A-Za-z]/g) || []).length * 0.5 +
+                             (content.match(/[^\w\s]/g) || []).length * 2;
+            
+            if (length < 50 && complexity < 20) return '简单';
+            if (length < 200 && complexity < 100) return '中等';
+            return '困难';
+        }
+
+        function generateSampleResult() {
+            return `<h3>🏰 记忆宫殿法 - 圆周率记忆</h3>
+                    <p>想象你走进一座<span class="highlight">数字宫殿</span>，每个房间都有独特的故事：</p>
+                    <ul>
+                        <li><strong>大门(3)：</strong>三角形的大门，象征着几何的开始</li>
+                        <li><strong>客厅(1)：</strong>一根蜡烛照亮整个房间</li>
+                        <li><strong>厨房(4)：</strong>四个炉灶正在烹饪</li>
+                        <li><strong>卧室(1)：</strong>一张舒适的单人床</li>
+                        <li><strong>书房(5)：</strong>五本厚重的数学书籍</li>
+                    </ul>
+                    <p>继续在宫殿中漫步，每个数字都有其独特的位置和故事...</p>
+                    
+                    <div class="method-details">
+                        <div class="method-title">💡 记忆技巧</div>
+                        <div class="method-description">
+                            通过空间记忆和视觉联想，将抽象的数字转化为具体的场景。每次回忆时，只需在脑海中重新"走过"这座宫殿即可。
+                        </div>
+                    </div>`;
+        }
+
+        function displayResult() {
+            // 更新页面内容
+            const methodBadge = document.getElementById('methodBadge');
+            if (methodBadge) {
+                methodBadge.innerHTML = `${resultData.methodIcon || '🧠'} ${resultData.method}`;
+            }
+            
+            const processingTime = document.getElementById('processingTime');
+            if (processingTime) processingTime.textContent = resultData.processingTime;
+            
+            const matchScore = document.getElementById('matchScore');
+            if (matchScore) matchScore.textContent = resultData.matchScore;
+            
+            const difficulty = document.getElementById('difficulty');
+            if (difficulty) difficulty.textContent = resultData.difficulty;
+            
+            const originalContent = document.getElementById('originalContent');
+            if (originalContent) {
+                originalContent.innerHTML = `
+                    <div class="content-meta">
+                        <span class="content-type">${resultData.contentType || '通用'}</span>
+                        <span class="content-length">${resultData.originalContent.length} 字符</span>
+                    </div>
+                    <div class="content-text">${resultData.originalContent}</div>
+                `;
+            }
+            
+            const aiContent = document.getElementById('aiContent');
+            if (aiContent) aiContent.innerHTML = resultData.aiResult;
+            
+            // 更新学习建议
+            updateTips();
+            
+            // 更新页面标题
+            document.title = `记忆结果 - ${resultData.method}`;
+        }
+
+        function updateTips() {
+            const tips = generateTips();
+            const tipsContainer = document.getElementById('tipsContainer');
+            if (tipsContainer) {
+                tipsContainer.innerHTML = tips.map(tip => `
+                    <div class="tip-item">
+                        <div class="tip-text">${tip}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function generateTips() {
+            const methodTips = {
+                '联想记忆法': [
+                    '💡 寻找新信息与已知知识的联系点',
+                    '🔗 建立生动有趣的关联故事',
+                    '🎯 使用夸张和幽默增强联想效果'
+                ],
+                '图像记忆法': [
+                    '🖼️ 将抽象概念转化为具体图像',
+                    '🌈 使用鲜艳的颜色增强视觉印象',
+                    '📐 利用空间位置关系组织信息'
+                ],
+                '故事记忆法': [
+                    '📚 创造有情节的完整故事',
+                    '🎭 加入情感元素增强记忆深度',
+                    '🔄 反复讲述故事巩固记忆'
+                ],
+                '位置记忆法': [
+                    '🏠 选择熟悉的地点作为记忆宫殿',
+                    '🚶 按固定路线放置记忆内容',
+                    '🎯 每个位置只放置一个关键信息'
+                ],
+                '记忆宫殿法': [
+                    '🏠 选择熟悉的地点作为记忆宫殿',
+                    '🚶 按固定路线放置记忆内容',
+                    '🎯 每个位置只放置一个关键信息'
+                ],
+                '韵律记忆法': [
+                    '🎵 创造朗朗上口的节拍韵律',
+                    '🎶 结合熟悉的旋律增强效果',
+                    '🔊 大声朗读加深听觉记忆'
+                ],
+                '分类记忆法': [
+                    '📊 按逻辑关系对信息分组',
+                    '🏷️ 为每个类别设置清晰标签',
+                    '🔍 从整体到细节逐层记忆'
+                ],
+                '数字记忆法': [
+                    '🔢 为数字创建固定的形象代码',
+                    '🎯 使用数字编码系统提高效率',
+                    '🔄 反复练习数字-图像转换'
+                ]
+            };
+            
+            const generalTips = [
+                '⏰ 利用艾宾浩斯遗忘曲线安排复习',
+                '🧘 保持专注，避免分心干扰',
+                '💤 充足睡眠有助于记忆巩固',
+                '🏃 适量运动提升大脑活力',
+                '📝 记录学习过程中的心得体会'
+            ];
+            
+            const methodSpecific = methodTips[resultData.method] || [];
+            const selected = [...methodSpecific];
+            
+            // 如果方法特定提示不足3个，从通用提示中补充
+            while (selected.length < 3) {
+                const randomTip = generalTips[Math.floor(Math.random() * generalTips.length)];
+                if (!selected.includes(randomTip)) {
+                    selected.push(randomTip);
+                }
+            }
+            
+            return selected.slice(0, 3);
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            
+            // 更新星星显示
+            document.querySelectorAll('.star').forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+
+            // 更新评分文本
+            const ratingTexts = [
+                '点击星星进行评分',
+                '很不满意 😞',
+                '不太满意 😐',
+                '还可以 🙂',
+                '很满意 😊',
+                '非常满意 🤩'
+            ];
+            document.getElementById('ratingText').textContent = ratingTexts[rating];
+        }
+
+        function saveRating() {
+            if (currentRating === 0) {
+                alert('请先选择评分');
+                return;
+            }
+
+            const comment = document.getElementById('ratingComment').value;
+            
+            // 保存评分到结果数据
+            resultData.rating = currentRating;
+            resultData.comment = comment;
+            resultData.ratedAt = new Date().toISOString();
+
+            // 保存到历史记录
+            saveToHistory();
+            
+            alert('评价已保存，感谢您的反馈！');
+        }
+
+        function regenerateResult() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // 模拟重新生成
+            setTimeout(() => {
+                // 这里可以调用AI API重新生成
+                const newResult = generateAlternativeResult();
+                resultData.aiResult = newResult;
+                resultData.processingTime = (Math.random() * 3 + 1).toFixed(1) + 's';
+                resultData.matchScore = (Math.random() * 20 + 80).toFixed(0) + '%';
+                
+                displayResult();
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 2000);
+        }
+
+        function generateAlternativeResult() {
+            const alternatives = [
+                `<h3>🎭 故事记忆法 - 圆周率记忆</h3>
+                 <p>让我们编织一个<span class="highlight">数字故事</span>：</p>
+                 <p>有个叫<strong>3</strong>的小孩，他有<strong>1</strong>个好朋友，他们一起去<strong>4</strong>个地方玩耍，遇到了<strong>1</strong>只小狗，小狗有<strong>5</strong>个玩具...</p>`,
+                
+                `<h3>🎵 韵律记忆法 - 圆周率记忆</h3>
+                 <p>将数字转化为<span class="highlight">朗朗上口的韵律</span>：</p>
+                 <p><strong>"三点一四一五九，二六五三五八九"</strong></p>
+                 <p>配合节拍和韵律，让记忆变得轻松愉快...</p>`,
+                
+                `<h3>🖼️ 图像记忆法 - 圆周率记忆</h3>
+                 <p>为每个数字创造<span class="highlight">生动的图像</span>：</p>
+                 <ul>
+                     <li><strong>3</strong> → 三角形 🔺</li>
+                     <li><strong>1</strong> → 铅笔 ✏️</li>
+                     <li><strong>4</strong> → 帆船 ⛵</li>
+                 </ul>`
+            ];
+            
+            return alternatives[Math.floor(Math.random() * alternatives.length)];
+        }
+
+        function shareResult() {
+            document.getElementById('shareModal').classList.add('show');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('show');
+        }
+
+        function shareToWeChat() {
+            // 微信分享逻辑
+            alert('正在打开微信分享...');
+            closeShareModal();
+        }
+
+        function shareToWeibo() {
+            // 微博分享逻辑
+            alert('正在打开微博分享...');
+            closeShareModal();
+        }
+
+        function shareToQQ() {
+            // QQ分享逻辑
+            alert('正在打开QQ分享...');
+            closeShareModal();
+        }
+
+        function copyLink() {
+            // 复制链接
+            const link = window.location.href;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('链接已复制到剪贴板');
+            }).catch(() => {
+                alert('复制失败，请手动复制');
+            });
+            closeShareModal();
+        }
+
+        function saveAsImage() {
+            // 保存为图片
+            alert('正在生成图片...');
+            closeShareModal();
+        }
+
+        function exportPDF() {
+            // 导出PDF
+            alert('正在生成PDF...');
+            closeShareModal();
+        }
+
+        function saveToHistory() {
+            // 使用与app.js一致的保存方法
+            if (window.parent && window.parent.saveMemoryRecord) {
+                // 转换处理时间为毫秒数（去掉's'后缀并转换为毫秒）
+                let processingTimeMs = 0;
+                if (resultData.processingTime) {
+                    const timeStr = resultData.processingTime.toString().replace('s', '');
+                    processingTimeMs = parseFloat(timeStr) * 1000; // 转换为毫秒
+                }
+                
+                // 构造与app.js saveMemoryRecord方法期望的数据结构
+                const saveData = {
+                    content: resultData.originalContent,
+                    methodId: resultData.methodId || 'unknown',
+                    result: resultData.aiResult,
+                    studyTime: processingTimeMs || 0
+                };
+                
+                // 调用父窗口的保存方法
+                const savedRecord = window.parent.saveMemoryRecord(saveData);
+                
+                if (savedRecord) {
+                    // 显示保存成功提示
+                    showSaveSuccess();
+                    
+                    // 通知父窗口更新统计
+                    window.parent.postMessage({ action: 'updateStats' }, '*');
+                } else {
+                    // 如果父窗口方法失败，使用本地保存
+                    saveToLocalStorage();
+                }
+            } else {
+                // 如果无法访问父窗口方法，使用本地保存
+                saveToLocalStorage();
+            }
+        }
+        
+        function saveToLocalStorage() {
+            // 获取现有历史记录，使用与app.js一致的键名
+            let records = JSON.parse(localStorage.getItem('memoryRecords') || '[]');
+            
+            // 转换处理时间为毫秒数
+            let processingTimeMs = 0;
+            if (resultData.processingTime) {
+                const timeStr = resultData.processingTime.toString().replace('s', '');
+                processingTimeMs = parseFloat(timeStr) * 1000; // 转换为毫秒
+            }
+            
+            // 构造与app.js saveMemoryRecord方法一致的记录结构
+            const record = {
+                id: Date.now().toString(),
+                content: resultData.originalContent,
+                methodId: resultData.methodId || 'unknown',
+                methodName: resultData.method || '未知方法',
+                result: resultData.aiResult,
+                timestamp: Date.now(),
+                studyTime: processingTimeMs || 0,
+                rating: resultData.rating || 0,
+                comment: resultData.comment || ''
+            };
+            
+            // 检查是否已存在相同的记录（基于内容和方法）
+            const existingIndex = records.findIndex(item => 
+                item.content === record.content && 
+                item.methodId === record.methodId
+            );
+            
+            if (existingIndex !== -1) {
+                // 更新现有记录
+                records[existingIndex] = { ...records[existingIndex], ...record };
+            } else {
+                // 添加新记录
+                records.push(record);
+            }
+            
+            // 限制历史记录数量
+            if (records.length > 100) {
+                records = records.slice(-100); // 保留最新的100条记录
+            }
+            
+            localStorage.setItem('memoryRecords', JSON.stringify(records));
+            
+            // 显示保存成功提示
+            showSaveSuccess();
+            
+            // 通知父窗口更新统计
+            if (window.parent) {
+                window.parent.postMessage({ action: 'updateStats' }, '*');
+            }
+        }
+
+        function showSaveSuccess() {
+            const button = document.querySelector('.action-btn[onclick="saveToHistory()"]');
+            if (button) {
+                const originalText = button.querySelector('.btn-text').textContent;
+                button.querySelector('.btn-text').textContent = '已保存';
+                button.style.background = '#28a745';
+                button.style.color = 'white';
+                
+                setTimeout(() => {
+                    button.querySelector('.btn-text').textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+            } else {
+                alert('已保存到学习历史');
+            }
+        }
+
+        function startNewMemory() {
+            // 清除当前结果
+            localStorage.removeItem('currentResult');
+            
+            // 导航到输入页面
+            if (window.parent) {
+                window.parent.postMessage({ action: 'navigate', page: 'input' }, '*');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadResultData();
+        });
+
+        // 点击模态框外部关闭
+        document.getElementById('shareModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('shareModal')) {
+                closeShareModal();
+            }
+        });
+    </script>
+</body>
+</html>

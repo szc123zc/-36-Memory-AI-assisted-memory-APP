@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录 - 36智能记忆</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .history-container {
+            padding: 15px;
+            background: linear-gradient(135deg, #2DE5F6 0%, #000618 100%);
+            min-height: calc(100vh - 120px);
+        }
+
+        .history-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000618;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-tab {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            min-width: fit-content;
+            backdrop-filter: blur(5px);
+        }
+
+        .filter-tab.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000618;
+            transform: scale(1.05);
+        }
+
+        .filter-tab:active {
+            transform: scale(0.95);
+        }
+
+        .search-sort {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 12px 16px;
+            border-radius: 25px;
+            background: #f8f9fa;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: white;
+            box-shadow: 0 0 0 2px rgba(57, 112, 255, 0.3);
+        }
+
+        .sort-select {
+            border: none;
+            outline: none;
+            padding: 12px 16px;
+            border-radius: 25px;
+            background: #f8f9fa;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .sort-select:focus {
+            background: white;
+            box-shadow: 0 0 0 2px rgba(57, 112, 255, 0.3);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .history-item:active {
+            transform: translateY(0);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .item-method {
+            background: linear-gradient(135deg, #3970FF, #F78080);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .item-time {
+            color: #666;
+            font-size: 12px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .item-content {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .star {
+            color: #ddd;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 2px;
+        }
+
+        .star.filled {
+            color: #ffa500;
+        }
+
+        .star:active {
+            transform: scale(1.2);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            min-width: 32px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+            background: #e0e0e0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .detail-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .close-btn {
+            background: #f8f9fa;
+            border: none;
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .close-btn:active {
+            transform: scale(0.9);
+        }
+
+        .modal-body {
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .detail-content {
+            line-height: 1.8;
+            color: #4a5568;
+        }
+
+        .detail-content h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin: 12px 0 8px 0;
+        }
+
+        .detail-content h4 {
+            font-size: 14px;
+            color: #3970FF;
+            margin: 10px 0 6px 0;
+        }
+
+        .detail-content strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .detail-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .detail-content li {
+            margin: 6px 0;
+            color: #4a5568;
+        }
+
+        .detail-content p {
+            margin: 8px 0;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3970FF, #F78080);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #3970FF;
+            border: 1px solid #3970FF;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .loading-spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .history-container {
+                padding: 10px;
+            }
+
+            .stats-grid {
+                gap: 8px;
+            }
+
+            .stat-item {
+                padding: 12px 8px;
+            }
+
+            .stat-number {
+                font-size: 18px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .filter-tabs {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .filter-tab {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .search-sort {
+                padding: 12px;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .sort-select {
+                width: 100%;
+            }
+
+            .history-item {
+                padding: 15px;
+            }
+
+            .item-header {
+                margin-bottom: 10px;
+            }
+
+            .item-content {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+
+            .action-btn {
+                font-size: 14px;
+                padding: 6px;
+                min-width: 28px;
+                min-height: 28px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                max-width: 95%;
+                max-height: 85%;
+            }
+
+            .modal-title {
+                font-size: 16px;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* 超小屏幕优化 */
+        @media (max-width: 480px) {
+            .history-container {
+                padding: 8px;
+            }
+
+            .header-title {
+                font-size: 18px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+
+            .stat-number {
+                font-size: 16px;
+            }
+
+            .filter-tab {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .search-input, .sort-select {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .history-item {
+                padding: 12px;
+            }
+
+            .item-method {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .item-time {
+                font-size: 11px;
+            }
+
+            .item-content {
+                font-size: 12px;
+            }
+
+            .star {
+                font-size: 14px;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .history-item:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .action-btn:hover {
+                background: none;
+                color: #666;
+            }
+
+            .filter-tab:hover {
+                transform: none;
+            }
+
+            .btn:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        /* 下拉刷新指示器 */
+        .pull-refresh-indicator {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 0 0 15px 15px;
+            font-size: 14px;
+            color: #666;
+            z-index: 100;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .pull-refresh-indicator.show {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <!-- 下拉刷新指示器 -->
+        <div class="pull-refresh-indicator" id="pullRefreshIndicator">
+            🔄 松开刷新
+        </div>
+        
+        <div class="history-header">
+            <div class="header-title">📚 学习历史</div>
+            <!-- 学习统计已移除 -->
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">全部</button>
+            <button class="filter-tab" data-filter="today">今天</button>
+            <button class="filter-tab" data-filter="week">本周</button>
+            <button class="filter-tab" data-filter="month">本月</button>
+            <button class="filter-tab" data-filter="favorites">收藏</button>
+        </div>
+
+        <div class="search-sort">
+            <input type="text" class="search-input" placeholder="搜索记录..." id="searchInput">
+            <select class="sort-select" id="sortSelect">
+                <option value="time_desc">时间降序</option>
+                <option value="time_asc">时间升序</option>
+                <option value="rating_desc">评分降序</option>
+                <option value="rating_asc">评分升序</option>
+            </select>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+        </div>
+
+        <div class="history-list" id="historyList">
+            <!-- 历史记录将通过JavaScript动态生成 -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">📝</div>
+            <div class="empty-title">暂无学习记录</div>
+            <div class="empty-desc">开始您的第一次记忆训练吧！<br>使用AI智能记忆方法，让学习更高效。</div>
+            <button class="btn btn-primary" onclick="startLearning()">开始学习</button>
+        </div>
+    </div>
+
+    <!-- 详情模态框 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">记录详情</div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 详细内容 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="shareRecord()">分享</button>
+                <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let historyData = [];
+        let filteredData = [];
+        let currentFilter = 'all';
+        let currentSort = 'time_desc';
+        let selectedRecord = null;
+
+        function loadHistoryData() {
+            // 从localStorage加载数据，使用与主应用一致的键名
+            const savedHistory = localStorage.getItem('memoryRecords');
+            historyData = savedHistory ? JSON.parse(savedHistory) : [];
+            
+            // 不再添加示例数据，只显示用户真实使用记忆法的记录
+            
+            filterAndSort();
+        }
+
+        // 示例数据生成功能已移除，只保留真实用户记录
+
+        // 学习统计功能已删除
+
+        function formatStudyTime(milliseconds) {
+            if (milliseconds < 60000) {
+                return '< 1分钟';
+            }
+            
+            const minutes = Math.floor(milliseconds / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) {
+                return `${days}天${hours % 24}小时`;
+            } else if (hours > 0) {
+                return `${hours}小时${minutes % 60}分钟`;
+            } else {
+                return `${minutes}分钟`;
+            }
+        }
+
+        // 详细统计功能已删除
+
+        function filterData() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            switch (currentFilter) {
+                case 'today':
+                    filteredData = historyData.filter(item => 
+                        new Date(item.timestamp) >= today
+                    );
+                    break;
+                case 'week':
+                    filteredData = historyData.filter(item => 
+                        new Date(item.timestamp) >= weekAgo
+                    );
+                    break;
+                case 'month':
+                    filteredData = historyData.filter(item => 
+                        new Date(item.timestamp) >= monthAgo
+                    );
+                    break;
+                case 'favorites':
+                    filteredData = historyData.filter(item => item.favorite);
+                    break;
+                default:
+                    filteredData = [...historyData];
+            }
+            
+            // 改进的搜索过滤
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (searchTerm) {
+                filteredData = filteredData.filter(item => {
+                    const content = (item.originalContent || item.content || '').toLowerCase();
+                    const method = (item.method || '').toLowerCase();
+                    const result = (item.result || '').toLowerCase();
+                    
+                    // 支持多关键词搜索
+                    const keywords = searchTerm.split(/\s+/);
+                    return keywords.every(keyword => 
+                        content.includes(keyword) || 
+                        method.includes(keyword) || 
+                        result.includes(keyword)
+                    );
+                });
+            }
+        }
+
+        function sortData() {
+            switch (currentSort) {
+                case 'time_desc':
+                    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    break;
+                case 'time_asc':
+                    filteredData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    break;
+                case 'rating_desc':
+                    filteredData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                    break;
+                case 'rating_asc':
+                    filteredData.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+                    break;
+            }
+        }
+
+        function filterAndSort() {
+            filterData();
+            sortData();
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const listContainer = document.getElementById('historyList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredData.length === 0) {
+                listContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            listContainer.style.display = 'flex';
+            emptyState.style.display = 'none';
+            
+            listContainer.innerHTML = filteredData.map(item => `
+                <div class="history-item" onclick="showDetail('${item.id}')">
+                    <div class="item-header">
+                        <div class="item-method">${item.methodName || item.method || '未知方法'}</div>
+                        <div class="item-time">${formatTime(item.timestamp)}</div>
+                    </div>
+                    <div class="item-content">${item.content}</div>
+                    <div class="item-footer">
+                        <div class="rating-stars">
+                            ${generateStars(item.rating || 0, item.id)}
+                        </div>
+                        <div class="item-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); toggleFavorite('${item.id}')" title="${item.favorite ? '取消收藏' : '收藏'}">
+                                ${item.favorite ? '❤️' : '🤍'}
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); shareRecord('${item.id}')" title="分享">
+                                📤
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); deleteRecord('${item.id}')" title="删除">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateStars(rating, itemId) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<span class="star ${i <= rating ? 'filled' : ''}" onclick="event.stopPropagation(); setRating('${itemId}', ${i})">⭐</span>`;
+            }
+            return stars;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                if (hours === 0) {
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    return minutes <= 0 ? '刚刚' : `${minutes}分钟前`;
+                }
+                return `${hours}小时前`;
+            } else if (days === 1) {
+                return '昨天';
+            } else if (days < 7) {
+                return `${days}天前`;
+            } else {
+                return date.toLocaleDateString('zh-CN');
+            }
+        }
+
+        function setRating(itemId, rating) {
+            const item = historyData.find(item => item.id === itemId);
+            if (item) {
+                item.rating = rating;
+                localStorage.setItem('memoryRecords', JSON.stringify(historyData));
+                notifyParentUpdate();
+                filterAndSort();
+            }
+        }
+
+        function toggleFavorite(itemId) {
+            const item = historyData.find(item => item.id === itemId);
+            if (item) {
+                item.favorite = !item.favorite;
+                localStorage.setItem('memoryRecords', JSON.stringify(historyData));
+                filterAndSort();
+            }
+        }
+
+        function deleteRecord(itemId) {
+            if (confirm('确定要删除这条记录吗？')) {
+                historyData = historyData.filter(item => String(item.id) !== String(itemId));
+                localStorage.setItem('memoryRecords', JSON.stringify(historyData));
+                notifyParentUpdate();
+                filterAndSort();
+            }
+        }
+
+        function notifyParentUpdate() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        action: 'refreshStats'
+                    }, '*');
+                }
+            } catch (e) {
+                console.warn('通知父窗口失败:', e);
+            }
+        }
+
+        function showDetail(itemId) {
+            console.log('showDetail called with itemId:', itemId, typeof itemId);
+            console.log('historyData:', historyData);
+            const item = historyData.find(item => {
+                console.log('Comparing:', item.id, typeof item.id, 'with', itemId, typeof itemId);
+                return item.id == itemId; // 使用宽松比较以处理类型差异
+            });
+            console.log('Found item:', item);
+            if (item) {
+                selectedRecord = item;
+                document.getElementById('modalTitle').textContent = `${item.methodName || item.method || '未知方法'} - ${formatTime(item.timestamp)}`;
+                
+                const formattedResult = item.result ? formatAIResult(item.result) : '<p style="color: #999;">暂无AI优化结果</p>';
+                
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="detail-section">
+                        <h4 class="detail-title">📝 原始内容</h4>
+                        <div class="detail-content">${item.content}</div>
+                    </div>
+                    <div class="detail-section">
+                        <h4 class="detail-title">🤖 AI优化结果</h4>
+                        <div class="detail-content">${formattedResult}</div>
+                    </div>
+                `;
+                const modal = document.getElementById('detailModal');
+                console.log('Modal element:', modal);
+                modal.classList.add('show');
+                console.log('Modal classes after adding show:', modal.classList);
+            } else {
+                console.error('Item not found for ID:', itemId);
+            }
+        }
+
+        function formatAIResult(rawResult) {
+            if (!rawResult) return '';
+            
+            let formatted = rawResult
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^(#{1,3})\s+(.+)$/gm, '<h3>$2</h3>')
+                .replace(/^•\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/^-\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+            
+            formatted = formatted.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+            
+            if (!formatted.startsWith('<h3>') && !formatted.startsWith('<ul>')) {
+                formatted = '<p>' + formatted + '</p>';
+            }
+            
+            return formatted;
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+            selectedRecord = null;
+        }
+
+        function shareRecord(itemId = null) {
+            const item = itemId ? historyData.find(item => item.id === itemId) : selectedRecord;
+            if (item) {
+                const shareText = `📚 36智能记忆\n\n方法：${item.method}\n内容：${item.content}\n\n${item.result.substring(0, 100)}...`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: '36智能记忆 - 学习记录',
+                        text: shareText,
+                        url: window.location.href
+                    }).catch(console.error);
+                } else {
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        alert('内容已复制到剪贴板！');
+                    }).catch(() => {
+                        alert('分享功能暂不可用');
+                    });
+                }
+            }
+        }
+
+        function startLearning() {
+            // 尝试多种导航方式
+            if (window.parent && window.parent !== window) {
+                // 在iframe中，使用parent的navigateTo函数
+                if (window.parent.navigateTo) {
+                    window.parent.navigateTo('input');
+                } else {
+                    parent.postMessage({ action: 'navigate', page: 'input' }, '*');
+                }
+            } else {
+                // 直接访问
+                window.location.href = '../index.html#input';
+            }
+        }
+
+        // 事件监听
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilter = tab.dataset.filter;
+                filterAndSort();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', () => {
+            filterAndSort();
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            filterAndSort();
+        });
+
+        // 点击模态框外部关闭
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistoryData();
+        });
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'refreshHistory') {
+                loadHistoryData();
+            } else if (event.data.action === 'newRecord') {
+                // 当有新记录时刷新数据
+                loadHistoryData();
+            }
+        });
+
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + F 聚焦搜索框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            
+            // ESC 关闭模态框
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 导出导入功能已移除
+
+        // 添加下拉刷新功能
+        let startY = 0;
+        let pullDistance = 0;
+        const pullThreshold = 80;
+        
+        document.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (window.scrollY === 0) {
+                pullDistance = e.touches[0].clientY - startY;
+                if (pullDistance > 0 && pullDistance < pullThreshold * 2) {
+                    e.preventDefault();
+                    const indicator = document.getElementById('pullRefreshIndicator');
+                    if (pullDistance > pullThreshold) {
+                        indicator.textContent = '🔄 松开刷新';
+                        indicator.classList.add('show');
+                    } else {
+                        indicator.textContent = '⬇️ 下拉刷新';
+                        indicator.classList.add('show');
+                    }
+                }
+            }
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            const indicator = document.getElementById('pullRefreshIndicator');
+            indicator.classList.remove('show');
+            
+            if (pullDistance > pullThreshold) {
+                indicator.textContent = '🔄 刷新中...';
+                indicator.classList.add('show');
+                loadHistoryData();
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 1000);
+            }
+            pullDistance = 0;
+        });
+    </script>
+</body>
+</html>
